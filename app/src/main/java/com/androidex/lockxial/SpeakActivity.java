@@ -87,7 +87,7 @@ public class SpeakActivity extends Activity{
                 } catch (InterruptedException e) {
                 }
                 if(currentStatus==CALL_MODE){
-                    sendMainMessenge(MainService.MSG_REJECT_CALL);
+                    sendMainMessenge(MainService.MSG_CLOSE_CALL);
                 }
                 checkDialStatusThread=null;
             }

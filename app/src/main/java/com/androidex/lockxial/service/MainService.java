@@ -57,6 +57,7 @@ public class MainService extends Service implements WifiEvent {
     public static final int MSG_OPEN_DOOR=20030; //开门消息编号
     public static final int MSG_OPEN_RTC=20031; //打开视频对讲消息编号
     public static final int MSG_REJECT_CALL=20032; //拒绝接听消息编号
+    public static final int MSG_CLOSE_CALL=20035; //挂断接听消息编号
     public static final int MSG_OPEN_LOCK=20033; //直接开门消息编号
     public static final int MSG_SWITCH_MIC=20034;//切换免提
     public static final int MSG_CHECK_RTC_STATUS=40001; //查看RTC连接状态
@@ -166,6 +167,8 @@ public class MainService extends Service implements WifiEvent {
                 }else if(msg.what==MSG_GETTOKEN){
                     onResponseGetToken(msg);
                 }else if(msg.what==MSG_REJECT_CALL){
+                    refuseDial();
+                }else if (msg.what==MSG_CLOSE_CALL){//挂断
                     closeDial();
                 }else if(msg.what==MSG_OPEN_RTC){
                     openRtc((String)msg.obj);
@@ -585,7 +588,7 @@ public class MainService extends Service implements WifiEvent {
                 }
             }else if(command.equals("cancelCall")){
                 if(call.from.equals(from)){
-                    closeDial();
+                    refuseDial();
                 }
             }
         }
@@ -655,6 +658,13 @@ public class MainService extends Service implements WifiEvent {
         closeRtc();
         String userUrl= RtcRules.UserToRemoteUri_new(call.from,RtcConst.UEType_Any);
         device.sendIm(userUrl,"text/plain","reject call");
+    }
+    protected void refuseDial(){//拒绝
+        stopRing();
+        closeRtc();
+        String userUrl= RtcRules.UserToRemoteUri_new(call.from,RtcConst.UEType_Any);
+        device.sendIm(userUrl,"text/plain","refuse call");
+        Log.e("call====","refuse");
     }
 
     protected void openDoor(){

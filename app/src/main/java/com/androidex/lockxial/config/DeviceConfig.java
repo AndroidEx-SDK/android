@@ -7,8 +7,6 @@ public class DeviceConfig {
     /********
      * residential
      *****/
-
-
     public static String SERVER_URL = "";
 //    public static String SMS_APPKEY = "1b36f1f6f0a34";//结点科技短信验证
 //    public static String SMS_APPSECRET = "90eb1ad156572fe82e33f853440cea34";

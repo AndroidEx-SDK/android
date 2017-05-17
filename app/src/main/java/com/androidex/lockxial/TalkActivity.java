@@ -54,7 +54,7 @@ public class TalkActivity extends Activity{
     @Override
     protected void onDestroy(){
         super.onDestroy();
-        sendMainMessenge(MainService.MSG_REJECT_CALL);
+        sendMainMessenge(MainService.MSG_CLOSE_CALL);
         unbindService(connection);
     }
 
