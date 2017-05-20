@@ -22,49 +22,53 @@ import java.util.List;
 import cn.jpush.reactnativejpush.JPushPackage;
 import cn.smssdk.SMSSDK;
 
-public class MainApplication extends NavigationApplication{
+public class MainApplication extends NavigationApplication {
     private boolean SHUTDOWN_TOAST = false;
     private boolean SHUTDOWN_LOG = false;
 
-  @Override
-  public boolean isDebug() {
-	return BuildConfig.DEBUG;
-    //return false;
-  }
-  
-  @Nullable
-  @Override
-  public List<ReactPackage> createAdditionalReactPackages() {
-      Application application=this;
-      return Arrays.<ReactPackage> asList(
-              //new MainReactPackage(),
-              new PickerPackage(),
-              new VectorIconsPackage(),
-              new ReactNativeI18n(),
-              new ReactBridgePackage(),
-              new UDPClientBridgePackage(),
-              new JPushPackage(true, true)
-      );
-  }
-	
-  private Messenger mainServiceMessenger=null;
+    @Override
+    public boolean isDebug() {
+        return BuildConfig.DEBUG;
+        //return false;
+    }
 
-  public void setMainServiceMessenger(Messenger mainServiceMessenger){
-      this.mainServiceMessenger=mainServiceMessenger;
-  }
+    @Nullable
+    @Override
+    public List<ReactPackage> createAdditionalReactPackages() {
+        Application application = this;
+        return Arrays.<ReactPackage>asList(//new MainReactPackage(),
+                new PickerPackage(),
+                new VectorIconsPackage(),
+                new ReactNativeI18n(),
+                new ReactBridgePackage(),
+                new UDPClientBridgePackage(),
+                new JPushPackage(true, true)
+        );
+    }
 
-  public Messenger getMainServiceMessenger(){
-    return this.mainServiceMessenger;
-  }
+    private Messenger mainServiceMessenger = null;
 
-  @Override
-  public void onCreate() {
-      super.onCreate();
-      SoLoader.init(this, /* native exopackage */ false);
-      //initPushService();
-      SMSSDK.initSDK(this, DeviceConfig.SMS_APPKEY,DeviceConfig.SMS_APPSECRET);
-      SMSSDK.registerEventHandler(ReactBridge.eventHandler); //注册短信回调
-  }
+    public void setMainServiceMessenger(Messenger mainServiceMessenger) {
+        this.mainServiceMessenger = mainServiceMessenger;
+    }
+
+    public Messenger getMainServiceMessenger() {
+        return this.mainServiceMessenger;
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        SoLoader.init(this, false);/* native exopackage */
+        //initPushService();
+        SMSSDK.initSDK(this, DeviceConfig.SMS_APPKEY, DeviceConfig.SMS_APPSECRET);
+        SMSSDK.registerEventHandler(ReactBridge.eventHandler); //注册短信回调
+
+//      JPushInterface.setDebugMode(true); 	// 设置开启日志,发布时请关闭日志
+//      JPushInterface.init(this);     		// 初始化 JPush
+
+
+    }
     /*
     private void initPushService(){
         PushAgent mPushAgent = PushAgent.getInstance(this);
