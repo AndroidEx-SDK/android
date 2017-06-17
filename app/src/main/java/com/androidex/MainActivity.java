@@ -1,4 +1,4 @@
-package com.androidex.lockxial;
+package com.androidex;
 
 import android.app.Service;
 import android.content.ComponentName;
@@ -11,7 +11,6 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 
-import com.androidex.R;
 import com.androidex.lockxial.service.MainService;
 import com.reactnativenavigation.controllers.SplashActivity;
 

@@ -7,5 +7,5 @@ include ':react-native-i18n'
 project(':react-native-i18n').projectDir = new File(rootProject.projectDir, '../../../node_modules/react-native-i18n/android')
 include ':react-native-navigation'
 project(':react-native-navigation').projectDir = new File(rootProject.projectDir, '../../../node_modules/react-native-navigation/android/app/')
-include ':app', ':jpush-react-native', ':jcore-react-native'
+include ':app', ':jpush-react-native'
 project(':jpush-react-native').projectDir = new File(rootProject.projectDir, '../../../node_modules/jpush-react-native/android')

@@ -136,7 +136,6 @@ repositories{
 }
 dependencies {
     compile project(':jpush-react-native')
-    compile project(':jcore-react-native')
     compile project(':react-native-image-crop-picker')
     compile project(':react-native-vector-icons')
     compile project(':react-native-i18n')
