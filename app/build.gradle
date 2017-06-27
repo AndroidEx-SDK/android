@@ -98,7 +98,7 @@ android {
         manifestPlaceholders = [
                 //14bdf0ddf096ac07559ffa24
                 JPUSH_APPKEY: "7809e4354a9eb0895971b9e8", //在此替换你的APPKey
-                APP_CHANNEL: "developer-default"    //应用渠道号
+                APP_CHANNEL: "androidex"    //应用渠道号
         ]
     }
     splits {

@@ -13,7 +13,6 @@ public class DeviceConfig {
     public static String SMS_APPKEY = "1d4bf780ed8b0";//安卓工控验证
     public static String SMS_APPSECRET = "4cc34bbcf1a48c605a7c3403efd21b85";
 
-
     public static final String LIFT_WIFI_SSID = "CB_CTRL";
     public static final String LIFT_WIFI_PASSWORD = "12345678";
 }
