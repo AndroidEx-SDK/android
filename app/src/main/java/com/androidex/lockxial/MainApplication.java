@@ -4,7 +4,6 @@ import android.app.Application;
 import android.os.Messenger;
 import android.support.annotation.Nullable;
 
-import com.androidex.BuildConfig;
 import com.androidex.lockxial.config.DeviceConfig;
 import com.androidex.lockxial.util.ReactBridge;
 import com.androidex.lockxial.util.ReactBridgePackage;
@@ -28,8 +27,8 @@ public class MainApplication extends NavigationApplication {
 
     @Override
     public boolean isDebug() {
-        return BuildConfig.DEBUG;
-        //return false;
+        //return BuildConfig.DEBUG;
+        return false;
     }
 
     @Nullable

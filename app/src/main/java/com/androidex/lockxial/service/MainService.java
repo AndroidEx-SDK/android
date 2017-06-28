@@ -13,16 +13,17 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
 
-import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.WritableMap;
-import com.androidex.lockxial.MainApplication;
 import com.androidex.R;
-import com.androidex.lockxial.SpeakActivity;
-import com.androidex.lockxial.TalkActivity;
+import com.androidex.lockxial.InboundActivity;
+import com.androidex.lockxial.MainApplication;
+import com.androidex.lockxial.OutboundActivity;
 import com.androidex.lockxial.config.DeviceConfig;
+import com.androidex.lockxial.util.BleHandler;
 import com.androidex.lockxial.util.ReactBridge;
 import com.androidex.lockxial.util.WifiEvent;
 import com.androidex.lockxial.util.WifiHandler;
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.WritableMap;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -48,8 +49,8 @@ import rtc.sdk.iface.RtcClient;
  */
 public class MainService extends Service implements WifiEvent {
     public static final int REGISTER_ACTIVITY_MAIN=1; //MainActivity绑定Service的消息编号
-    public static final int REGISTER_ACTIVITY_SPEAK=2; //SpeakActivity绑定Service的消息编号
-    public static final int REGISTER_ACTIVITY_TALK=3; //SpeakActivity绑定Service的消息编号
+    public static final int REGISTER_ACTIVITY_INBOUND =2; //InboundActivity绑定Service的消息编号
+    public static final int REGISTER_ACTIVITY_OUTBOUND =3; //OutboundActivity绑定Service的消息编号
     public static final int MSG_SERVER_INFO=10000; //开始连接RTC服务器消息编号10001
     public static final int MSG_CONNECT_RTC=10001; //开始连接RTC服务器消息编号
     public static final int MSG_RELEASE_RTC=10002; //开始关闭RTC服务器
@@ -57,11 +58,18 @@ public class MainService extends Service implements WifiEvent {
     public static final int MSG_OPEN_DOOR=20030; //开门消息编号
     public static final int MSG_OPEN_RTC=20031; //打开视频对讲消息编号
     public static final int MSG_REJECT_CALL=20032; //拒绝接听消息编号
-    public static final int MSG_CLOSE_CALL=20035; //挂断接听消息编号
     public static final int MSG_OPEN_LOCK=20033; //直接开门消息编号
     public static final int MSG_SWITCH_MIC=20034;//切换免提
     public static final int MSG_CHECK_RTC_STATUS=40001; //查看RTC连接状态
     public static final int MSG_CALL_INDOOR=50001; //呼叫室内机
+    public static final int MSG_CALL_ADMIN_CENTER=50002; //呼叫管理中心
+
+    public static final int MSG_SCAN_BLE_LOCK=60001; //扫描蓝牙门禁设备
+    public static final int MSG_OPEN_BLE_LOCK=60002; //发送打开蓝牙门禁请求
+    public static final int MSG_OPEN_BLE_LOCK_FAILED=60003; //打开蓝牙门禁失败
+    public static final int MSG_OPEN_BLE_LOCK_SUCCESS=60004; //打开蓝牙门禁失败
+    public static final int MSG_FIND_BLE_LOCK=60005; //扫描蓝牙门禁设备
+    public static final int MSG_STOP_BLE_SCAN=60006; //扫描蓝牙门禁设备
 
     public static final String APP_ID = "71012";
     public static final String APP_KEY ="71007b1c-6b75-4d6f-85aa-40c1f3b842ef";
@@ -82,12 +90,14 @@ public class MainService extends Service implements WifiEvent {
     private MediaPlayer ringingPlayer;
     private int micFlag=0;
 
-    protected Messenger speakMessenger=null;
-    protected Messenger talkMessenger=null;
+    protected Messenger mainMessenger=null;
+    protected Messenger inboundMessenger =null;
+    protected Messenger outboundMessenger =null;
     protected Messenger serviceMessenger=null;
     protected Handler handler=null;
 
     private WifiHandler wifiHandler=null;
+    private BleHandler bleHandler=null;
 
     public MainService() {
     }
@@ -122,6 +132,10 @@ public class MainService extends Service implements WifiEvent {
         wifiHandler.startChecking(DeviceConfig.LIFT_WIFI_SSID);
     }
 
+    protected void initBleHandler(){
+        bleHandler=new BleHandler(this,handler);
+    }
+
     public void onStatusChanged(int status){
         WritableMap params = Arguments.createMap();
         params.putInt("liftStatus",status);
@@ -151,15 +165,19 @@ public class MainService extends Service implements WifiEvent {
         handler = new Handler(){
             @Override
             public void handleMessage(Message msg) {
-                if(msg.what == REGISTER_ACTIVITY_SPEAK){
-                    Log.i("MainService","register Speak messenger");
-                    speakMessenger = msg.replyTo;
-                }else if(msg.what == REGISTER_ACTIVITY_TALK){
-                    Log.i("MainService","register Talk messenger");
-                    talkMessenger = msg.replyTo;
+                if(msg.what == REGISTER_ACTIVITY_MAIN){
+                    Log.i("MainService","register Main messenger");
+                    mainMessenger = msg.replyTo;
+                }else if(msg.what == REGISTER_ACTIVITY_INBOUND){
+                    Log.i("MainService","register Inbound messenger");
+                    inboundMessenger = msg.replyTo;
+                }else if(msg.what == REGISTER_ACTIVITY_OUTBOUND){
+                    Log.i("MainService","register Outbound messenger");
+                    outboundMessenger = msg.replyTo;
                     openRtc("video");
                 }else if(msg.what==MSG_SERVER_INFO){
                     DeviceConfig.SERVER_URL=(String)msg.obj;
+                    initBleHandler();
                 }else if(msg.what==MSG_CONNECT_RTC){
                     onOpenRtc((String)msg.obj);
                 }else if(msg.what==MSG_RELEASE_RTC){
@@ -167,8 +185,6 @@ public class MainService extends Service implements WifiEvent {
                 }else if(msg.what==MSG_GETTOKEN){
                     onResponseGetToken(msg);
                 }else if(msg.what==MSG_REJECT_CALL){
-                    refuseDial();
-                }else if (msg.what==MSG_CLOSE_CALL){//挂断
                     closeDial();
                 }else if(msg.what==MSG_OPEN_RTC){
                     openRtc((String)msg.obj);
@@ -176,7 +192,13 @@ public class MainService extends Service implements WifiEvent {
                     openDoor();
                 }else if(msg.what==MSG_OPEN_LOCK){
                     String lockKey=(String)msg.obj;
-                    openLock(lockKey);
+                    String[] tempValue=lockKey.split("-");
+                    lockKey=tempValue[0];
+                    String unitNo=null;
+                    if(tempValue.length>1){
+                        unitNo=tempValue[1];
+                    }
+                    openLock(lockKey,unitNo);
                 }else if(msg.what==MSG_SWITCH_MIC){
                     switchMic();
                 }else if(msg.what==MSG_CHECK_RTC_STATUS){
@@ -184,6 +206,32 @@ public class MainService extends Service implements WifiEvent {
                 }else if(msg.what==MSG_CALL_INDOOR){
                     String deviceKey=(String)msg.obj;
                     openTalk(deviceKey);
+                }else if(msg.what==MSG_CALL_ADMIN_CENTER){
+                    String deviceKey=(String)msg.obj;
+                    openTalk(deviceKey);
+                }else if(msg.what==MSG_SCAN_BLE_LOCK){
+                    bleHandler.startScan();
+                }else if(msg.what==MSG_STOP_BLE_SCAN){
+                    bleHandler.stopScan();
+                }else if(msg.what==MSG_FIND_BLE_LOCK){
+                    String deviceName=(String)msg.obj;
+                    WritableMap params = Arguments.createMap();
+                    params.putString("deviceName",deviceName);
+                    ReactBridge.sendReactMessage("findBleDevice",params);
+                }else if(msg.what==MSG_OPEN_BLE_LOCK){
+                    String value=(String)msg.obj;
+                    String[] values=value.split("-");
+                    String deviceName=values[0];
+                    String username=values[1];
+                    String unitNo=values[2];
+                    bleHandler.openBleLock(deviceName,username,unitNo);
+                }else if(msg.what==MSG_OPEN_BLE_LOCK_FAILED){
+                    int code=(Integer)msg.obj;
+                    WritableMap params = Arguments.createMap();
+                    params.putInt("code",code);
+                    ReactBridge.sendReactMessage("openBleLockFailed",params);
+                }else if(msg.what==MSG_OPEN_BLE_LOCK_SUCCESS){
+                    ReactBridge.sendReactMessage("openBleLockSuccess",null);
                 }
             }
         };
@@ -413,9 +461,9 @@ public class MainService extends Service implements WifiEvent {
         ReactBridge.sendReactMessage("changeRtcStatus",params);
     }
 
-    protected void startSpeakActivity(Call call){
-        if(SpeakActivity.instance==null){
-            Intent intent = new Intent(getBaseContext(),SpeakActivity.class);
+    protected void startInboundActivity(Call call){
+        if(InboundActivity.instance==null){
+            Intent intent = new Intent(getBaseContext(),InboundActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.putExtra("imageUrl",call.imageUrl);
             intent.putExtra("unitName",call.unitName);
@@ -425,27 +473,27 @@ public class MainService extends Service implements WifiEvent {
         }
     }
 
-    protected void stopSpeakActivity(){
-        if(SpeakActivity.instance!=null){
-            SpeakActivity.instance.finish();
-            SpeakActivity.instance=null;
+    protected void stopInboundActivity(){
+        if(InboundActivity.instance!=null){
+            InboundActivity.instance.finish();
+            InboundActivity.instance=null;
         }
-        speakMessenger=null;
+        inboundMessenger =null;
     }
 
-    protected void startTalkActivity(){
-        stopTalkActivity();
-        Intent intent = new Intent(getBaseContext(),TalkActivity.class);
+    protected void startOutboundActivity(){
+        stopOutboundActivity();
+        Intent intent = new Intent(getBaseContext(),OutboundActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
     }
 
-    protected void stopTalkActivity(){
-        if(TalkActivity.instance!=null){
-            TalkActivity.instance.finish();
-            TalkActivity.instance=null;
+    protected void stopOutboundActivity(){
+        if(OutboundActivity.instance!=null){
+            OutboundActivity.instance.finish();
+            OutboundActivity.instance=null;
         }
-        talkMessenger=null;
+        outboundMessenger =null;
     }
 
     protected void sendMessenge(int code,Object object){
@@ -455,26 +503,26 @@ public class MainService extends Service implements WifiEvent {
         handler.sendMessage(message);
     }
 
-    protected void sendSpeakMessenge(int code,Object object){
-        if(speakMessenger!=null) {
+    protected void sendInboundMessenge(int code, Object object){
+        if(inboundMessenger !=null) {
             Message message = Message.obtain();
             message.what = code;
             message.obj = object;
             try {
-                speakMessenger.send(message);
+                inboundMessenger.send(message);
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    protected void sendTalkMessenge(int code,Object object){
-        if(talkMessenger!=null) {
+    protected void sendOutboundMessenge(int code, Object object){
+        if(outboundMessenger !=null) {
             Message message = Message.obtain();
             message.what = code;
             message.obj = object;
             try {
-                talkMessenger.send(message);
+                outboundMessenger.send(message);
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
@@ -588,8 +636,18 @@ public class MainService extends Service implements WifiEvent {
                 }
             }else if(command.equals("cancelCall")){
                 if(call.from.equals(from)){
-                    refuseDial();
+                    closeDial();
                 }
+            }else if(command.equals("useCoupon")){
+                int couponId=0;
+                WritableMap params = Arguments.createMap();
+                try{
+                    couponId=msg.getInt("couponId");
+                    params.putInt("couponId",couponId);
+                }catch(Exception e){}
+                ReactBridge.sendReactMessage("useCoupon",params);
+            }else{
+                ReactBridge.sendReactMessage(command,null);
             }
         }
     };
@@ -601,8 +659,13 @@ public class MainService extends Service implements WifiEvent {
         }
         @Override
         public void onConnected() {
-
+            if(call.status.equals("N")) {
+                sendInboundMessenge(InboundActivity.MSG_RTC_CONNECTED,null);
+            }else{
+                sendOutboundMessenge(OutboundActivity.MSG_RTC_CONNECTED,null);
+            }
         }
+
         @Override
         public void onDisconnected(int code) {
             Log.v("MainService","onDisconnected timerDur"+ callConnection.getCallDuration());
@@ -619,9 +682,9 @@ public class MainService extends Service implements WifiEvent {
         @Override
         public void onVideo() {
             if(call.status.equals("N")){
-                sendSpeakMessenge(SpeakActivity.MSG_RTC_ONVIDEO,null);
+                sendInboundMessenge(InboundActivity.MSG_RTC_ONVIDEO,null);
             }else{
-                sendTalkMessenge(TalkActivity.MSG_RTC_ONVIDEO,null);
+                sendOutboundMessenge(OutboundActivity.MSG_RTC_ONVIDEO,null);
             }
         }
         @Override
@@ -631,9 +694,9 @@ public class MainService extends Service implements WifiEvent {
     };
     private void callingDisconnect(){
         if(call.status.equals("N")) {
-            sendSpeakMessenge(SpeakActivity.MSG_RTC_DISCONNECT, null);
+            sendInboundMessenge(InboundActivity.MSG_RTC_DISCONNECT, null);
         }else{
-            sendTalkMessenge(TalkActivity.MSG_RTC_DISCONNECT, null);
+            sendOutboundMessenge(OutboundActivity.MSG_RTC_DISCONNECT, null);
         }
     }
 
@@ -646,11 +709,11 @@ public class MainService extends Service implements WifiEvent {
 
     protected void openDial(){
         startRing();
-        startSpeakActivity(call);
+        startInboundActivity(call);
     }
 
     protected void appendImage(String imageUrl){
-        sendSpeakMessenge(SpeakActivity.MSG_APPEND_IMAGE,imageUrl);
+        sendInboundMessenge(InboundActivity.MSG_APPEND_IMAGE,imageUrl);
     }
 
     protected void closeDial(){
@@ -658,13 +721,6 @@ public class MainService extends Service implements WifiEvent {
         closeRtc();
         String userUrl= RtcRules.UserToRemoteUri_new(call.from,RtcConst.UEType_Any);
         device.sendIm(userUrl,"text/plain","reject call");
-    }
-    protected void refuseDial(){//拒绝
-        stopRing();
-        closeRtc();
-        String userUrl= RtcRules.UserToRemoteUri_new(call.from,RtcConst.UEType_Any);
-        device.sendIm(userUrl,"text/plain","refuse call");
-        Log.e("call====","refuse");
     }
 
     protected void openDoor(){
@@ -679,15 +735,19 @@ public class MainService extends Service implements WifiEvent {
         device.sendIm(userUrl,"text/plain","open the door"+imageAppendValue);
     }
 
-    protected void openLock(String lockKey){
+    protected void openLock(String lockKey,String unitNo){
         String userUrl= RtcRules.UserToRemoteUri_new(lockKey,RtcConst.UEType_Any);
-        device.sendIm(userUrl,"text/plain","open the door");
+        String append="";
+        if(unitNo!=null){
+            append="-"+unitNo;
+        }
+        device.sendIm(userUrl,"text/plain","open the door"+append);
     }
 
     protected void openTalk(String deviceKey){
         call.from=deviceKey;
         call.status="T";
-        startTalkActivity();
+        startOutboundActivity();
     }
 
     protected void openRtc(String type){
@@ -705,12 +765,19 @@ public class MainService extends Service implements WifiEvent {
                 }
             }catch(JSONException e){}
             callConnection=device.connect(parameter.toString(),connectionListener);
+            if(callConnection==null){
+                closeRtc();
+            }
         }
     }
 
     protected void closeRtc(){
         closeCallingConnection();
-        stopSpeakActivity();
+        if(call.status.equals("N")){
+            stopInboundActivity();
+        }else{
+            stopOutboundActivity();
+        }
     }
 
     @Override

@@ -1,7 +1,10 @@
 package com.androidex;
 
 import android.app.Service;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
@@ -12,9 +15,12 @@ import android.os.Messenger;
 import android.os.RemoteException;
 
 import com.androidex.lockxial.service.MainService;
+import com.androidex.lockxial.util.BleHandler;
 import com.reactnativenavigation.controllers.SplashActivity;
 
 public class MainActivity extends SplashActivity {
+    private final static int REQUEST_ENABLE_BT = 1;
+
     protected Messenger mainMessenger;
     protected Messenger serviceMessenger;
     protected Handler handler=null;
@@ -24,6 +30,15 @@ public class MainActivity extends SplashActivity {
         super.onCreate(savedInstanceState);
         initHandler();
         startMainService();
+    }
+
+    protected void initBleService(){
+        final BluetoothManager bluetoothManager =(BluetoothManager)getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
+        BleHandler.bluetoothAdapter = bluetoothManager.getAdapter();
+        if (BleHandler.bluetoothAdapter == null || !BleHandler.bluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent,REQUEST_ENABLE_BT);
+        }
     }
 
     @Override
@@ -48,6 +63,7 @@ public class MainActivity extends SplashActivity {
     protected void onDestroy(){
         super.onDestroy();
         try{
+            initBleService();
             unbindService();
         }catch(Exception e){}
     }
