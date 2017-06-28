@@ -96,7 +96,7 @@ public class InboundActivity extends Activity{
                 } catch (InterruptedException e) {
                 }
                 if(currentStatus==CALL_MODE){
-                    sendMainMessenge(MainService.MSG_REJECT_CALL);
+                    sendMainMessenge(MainService.MSG_CLOSE_CALL);
                 }
                 checkDialStatusThread=null;
             }
@@ -115,7 +115,7 @@ public class InboundActivity extends Activity{
     @Override
     protected void onDestroy(){
         super.onDestroy();
-        sendMainMessenge(MainService.MSG_REJECT_CALL);
+        sendMainMessenge(MainService.MSG_CLOSE_CALL);
         unbindService(connection);
 		if(checkDialStatusThread!=null){
             try {
