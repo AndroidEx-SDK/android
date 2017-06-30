@@ -1,11 +1,11 @@
 rootProject.name = 'android'
 include ':react-native-image-crop-picker'
-project(':react-native-image-crop-picker').projectDir = new File(rootProject.projectDir, '../../../node_modules/react-native-image-crop-picker/android')
+project(':react-native-image-crop-picker').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-image-crop-picker/android')
 include ':react-native-vector-icons'
-project(':react-native-vector-icons').projectDir = new File(rootProject.projectDir, '../../../node_modules/react-native-vector-icons/android')
+project(':react-native-vector-icons').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-vector-icons/android')
 include ':react-native-i18n'
-project(':react-native-i18n').projectDir = new File(rootProject.projectDir, '../../../node_modules/react-native-i18n/android')
+project(':react-native-i18n').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-i18n/android')
 include ':react-native-navigation'
-project(':react-native-navigation').projectDir = new File(rootProject.projectDir, '../../../node_modules/react-native-navigation/android/app/')
+project(':react-native-navigation').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-navigation/android/app/')
 include ':app', ':jpush-react-native'
-project(':jpush-react-native').projectDir = new File(rootProject.projectDir, '../../../node_modules/jpush-react-native/android')
+project(':jpush-react-native').projectDir = new File(rootProject.projectDir, '../node_modules/jpush-react-native/android')
