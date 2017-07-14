@@ -41,7 +41,7 @@ public class MainApplication extends NavigationApplication {
                 new ReactNativeI18n(),
                 new ReactBridgePackage(),
                 new UDPClientBridgePackage(),
-                new JPushPackage(false, false)
+                new JPushPackage(true, true)
         );
     }
 
