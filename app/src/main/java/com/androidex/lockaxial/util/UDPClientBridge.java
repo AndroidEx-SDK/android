@@ -1,4 +1,4 @@
-package com.androidex.lockxial.util;
+package com.androidex.lockaxial.util;
 
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;

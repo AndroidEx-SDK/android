@@ -1,13 +1,13 @@
 /**
  * 用于蓝牙门禁控制
  */
-package com.androidex.lockxial.util;
+package com.androidex.lockaxial.util;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.os.Handler;
 
-import com.androidex.lockxial.service.MainService;
+import com.androidex.lockaxial.service.MainService;
 
 public class BleLockDevice extends BleDevice{
     public static byte COMMAND_HEAD=(byte)0xA1;

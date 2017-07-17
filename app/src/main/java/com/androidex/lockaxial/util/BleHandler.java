@@ -1,7 +1,7 @@
 /**
  * 用于APP管理
  */
-package com.androidex.lockxial.util;
+package com.androidex.lockaxial.util;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -9,7 +9,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 
-import com.androidex.lockxial.service.MainService;
+import com.androidex.lockaxial.service.MainService;
 
 import java.util.HashMap;
 

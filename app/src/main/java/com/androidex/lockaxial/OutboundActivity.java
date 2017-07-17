@@ -1,4 +1,4 @@
-package com.androidex.lockxial;
+package com.androidex.lockaxial;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -17,7 +17,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.androidex.R;
-import com.androidex.lockxial.service.MainService;
+import com.androidex.lockaxial.service.MainService;
 
 
 public class OutboundActivity extends Activity{

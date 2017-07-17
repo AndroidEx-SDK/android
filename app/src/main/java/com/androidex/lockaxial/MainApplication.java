@@ -1,13 +1,13 @@
-package com.androidex.lockxial;
+package com.androidex.lockaxial;
 
 import android.app.Application;
 import android.os.Messenger;
 import android.support.annotation.Nullable;
 
-import com.androidex.lockxial.config.DeviceConfig;
-import com.androidex.lockxial.util.ReactBridge;
-import com.androidex.lockxial.util.ReactBridgePackage;
-import com.androidex.lockxial.util.UDPClientBridgePackage;
+import com.androidex.lockaxial.config.DeviceConfig;
+import com.androidex.lockaxial.util.ReactBridge;
+import com.androidex.lockaxial.util.ReactBridgePackage;
+import com.androidex.lockaxial.util.UDPClientBridgePackage;
 import com.facebook.react.ReactPackage;
 import com.facebook.soloader.SoLoader;
 import com.i18n.reactnativei18n.ReactNativeI18n;

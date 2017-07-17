@@ -14,8 +14,8 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 
-import com.androidex.lockxial.service.MainService;
-import com.androidex.lockxial.util.BleHandler;
+import com.androidex.lockaxial.service.MainService;
+import com.androidex.lockaxial.util.BleHandler;
 import com.reactnativenavigation.controllers.SplashActivity;
 
 public class MainActivity extends SplashActivity {

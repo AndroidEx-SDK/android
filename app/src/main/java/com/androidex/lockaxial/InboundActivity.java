@@ -1,4 +1,4 @@
-package com.androidex.lockxial;
+package com.androidex.lockaxial;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -21,8 +21,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.androidex.R;
-import com.androidex.lockxial.config.DeviceConfig;
-import com.androidex.lockxial.service.MainService;
+import com.androidex.lockaxial.config.DeviceConfig;
+import com.androidex.lockaxial.service.MainService;
 
 import java.io.IOException;
 import java.io.InputStream;

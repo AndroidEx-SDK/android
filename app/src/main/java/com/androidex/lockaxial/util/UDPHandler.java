@@ -1,4 +1,4 @@
-package com.androidex.lockxial.util;
+package com.androidex.lockaxial.util;
 
 import java.io.IOException;
 import java.net.DatagramPacket;

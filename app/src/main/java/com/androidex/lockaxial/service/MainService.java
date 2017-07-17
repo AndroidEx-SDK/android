@@ -1,4 +1,4 @@
-package com.androidex.lockxial.service;
+package com.androidex.lockaxial.service;
 
 import android.app.Service;
 import android.content.Context;
@@ -14,14 +14,14 @@ import android.os.RemoteException;
 import android.util.Log;
 
 import com.androidex.R;
-import com.androidex.lockxial.InboundActivity;
-import com.androidex.lockxial.MainApplication;
-import com.androidex.lockxial.OutboundActivity;
-import com.androidex.lockxial.config.DeviceConfig;
-import com.androidex.lockxial.util.BleHandler;
-import com.androidex.lockxial.util.ReactBridge;
-import com.androidex.lockxial.util.WifiEvent;
-import com.androidex.lockxial.util.WifiHandler;
+import com.androidex.lockaxial.InboundActivity;
+import com.androidex.lockaxial.MainApplication;
+import com.androidex.lockaxial.OutboundActivity;
+import com.androidex.lockaxial.config.DeviceConfig;
+import com.androidex.lockaxial.util.BleHandler;
+import com.androidex.lockaxial.util.ReactBridge;
+import com.androidex.lockaxial.util.WifiEvent;
+import com.androidex.lockaxial.util.WifiHandler;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 

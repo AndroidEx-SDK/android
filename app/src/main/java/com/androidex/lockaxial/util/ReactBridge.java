@@ -1,4 +1,4 @@
-package com.androidex.lockxial.util;
+package com.androidex.lockaxial.util;
 
 import android.os.Message;
 import android.os.Messenger;
@@ -6,7 +6,7 @@ import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.androidex.lockxial.service.MainService;
+import com.androidex.lockaxial.service.MainService;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;

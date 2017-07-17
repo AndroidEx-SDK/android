@@ -1,7 +1,7 @@
 /**
  * 用于APP管理WIFI
  */
-package com.androidex.lockxial.util;
+package com.androidex.lockaxial.util;
 
 import android.content.Context;
 import android.net.wifi.WifiConfiguration;

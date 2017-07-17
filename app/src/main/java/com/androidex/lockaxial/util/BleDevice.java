@@ -1,7 +1,7 @@
 /**
  * 用于蓝牙门禁控制
  */
-package com.androidex.lockxial.util;
+package com.androidex.lockaxial.util;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;

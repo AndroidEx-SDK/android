@@ -1,4 +1,4 @@
-package com.androidex.lockxial.config;
+package com.androidex.lockaxial.config;
 
 /**
  * Created by simon on 2016/7/23.
