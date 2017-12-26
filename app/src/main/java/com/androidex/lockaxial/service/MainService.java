@@ -72,8 +72,13 @@ public class MainService extends Service implements WifiEvent {
     public static final int MSG_FIND_BLE_LOCK = 60005; //扫描蓝牙门禁设备
     public static final int MSG_STOP_BLE_SCAN = 60006; //扫描蓝牙门禁设备
 
-    public static final String APP_ID = "71012";
-    public static final String APP_KEY = "71007b1c-6b75-4d6f-85aa-40c1f3b842ef";
+    /************结点科技提供的账号****************/
+    //public static final String APP_ID = "71012";
+    //public static final String APP_KEY ="71007b1c-6b75-4d6f-85aa-40c1f3b842ef";
+    /*************肖泽东申请的账号****************/
+    public static final String APP_ID = "71986";
+    public static final String APP_KEY = "c9f8f45f-d3ad-4876-b5fd-78f5796dab59";
+
     public static final String RTC_TOKEN_STORAGE = "RTC_TOKEN_STORAGE";
     public static final String RTC_TOKEN_KEY = "RTC_TOKEN_KEY";
     public static final String RTC_TOKEN_DATE = "RTC_TOKEN_DATE";

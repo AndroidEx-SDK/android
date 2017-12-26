@@ -21,7 +21,7 @@ import java.util.List;
 import cn.jpush.reactnativejpush.JPushPackage;
 import cn.smssdk.SMSSDK;
 
-public class MainApplication extends NavigationApplication {
+public class MainApplication extends NavigationApplication{
     private boolean SHUTDOWN_TOAST = false;
     private boolean SHUTDOWN_LOG = false;
 
@@ -34,8 +34,9 @@ public class MainApplication extends NavigationApplication {
     @Nullable
     @Override
     public List<ReactPackage> createAdditionalReactPackages() {
-        Application application = this;
-        return Arrays.<ReactPackage>asList(//new MainReactPackage(),
+        Application application=this;
+        return Arrays.<ReactPackage> asList(
+                //new MainReactPackage(),
                 new PickerPackage(),
                 new VectorIconsPackage(),
                 new ReactNativeI18n(),
@@ -45,28 +46,23 @@ public class MainApplication extends NavigationApplication {
         );
     }
 
-    private Messenger mainServiceMessenger = null;
+    private Messenger mainServiceMessenger=null;
 
-    public void setMainServiceMessenger(Messenger mainServiceMessenger) {
-        this.mainServiceMessenger = mainServiceMessenger;
+    public void setMainServiceMessenger(Messenger mainServiceMessenger){
+        this.mainServiceMessenger=mainServiceMessenger;
     }
 
-    public Messenger getMainServiceMessenger() {
+    public Messenger getMainServiceMessenger(){
         return this.mainServiceMessenger;
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        SoLoader.init(this, false);/* native exopackage */
+        SoLoader.init(this, /* native exopackage */ false);
         //initPushService();
-        SMSSDK.initSDK(this, DeviceConfig.SMS_APPKEY, DeviceConfig.SMS_APPSECRET);
+        SMSSDK.initSDK(this, DeviceConfig.SMS_APPKEY,DeviceConfig.SMS_APPSECRET);
         SMSSDK.registerEventHandler(ReactBridge.eventHandler); //注册短信回调
-
-//      JPushInterface.setDebugMode(true); 	// 设置开启日志,发布时请关闭日志
-//      JPushInterface.init(this);     		// 初始化 JPush
-
-
     }
     /*
     private void initPushService(){

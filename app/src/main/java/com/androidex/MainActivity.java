@@ -63,7 +63,7 @@ public class MainActivity extends SplashActivity {
     protected void onDestroy(){
         super.onDestroy();
         try{
-            initBleService();
+            //initBleService();
             unbindService();
         }catch(Exception e){}
     }
