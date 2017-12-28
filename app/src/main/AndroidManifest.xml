@@ -41,6 +41,26 @@
     <uses-permission android:name="android.permission.GET_TASKS" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
+    <permission android:name="android.permission.BLUETOOTH" />
+    <permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></permission>
+    <permission android:name="android.permission.ACCESS_NETWORK_STATE"></permission>
+    <permission android:name="android.permission.ACCESS_WIFI_STATE"></permission>
+    <permission android:name="android.permission.INTERNET"></permission>
+    <permission android:name="android.permission.RECORD_AUDIO"></permission>
+    <permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"></permission>
+    <permission android:name="android.permission.CAMERA"></permission>
+    <permission android:name="android.hardware.camera"></permission>
+    <permission android:name="android.hardware.camera.autofocus"></permission>
+    <permission android:name="android.permission.WAKE_LOCK"></permission>
+    <permission android:name="android.permission.READ_CONTACTS" />
+    <permission android:name="android.permission.READ_PHONE_STATE" />
+    <permission android:name="android.permission.RECEIVE_SMS" />
+    <permission android:name="android.permission.READ_SMS" />
+    <permission android:name="android.permission.GET_TASKS" />
+    <permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
     <application
         android:name="com.androidex.lockaxial.MainApplication"
         android:allowBackup="true"

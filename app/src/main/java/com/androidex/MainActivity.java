@@ -7,37 +7,51 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
 
 import com.androidex.lockaxial.service.MainService;
 import com.androidex.lockaxial.util.BleHandler;
+import com.androidex.lockaxial.util.PermissionUtil;
 import com.reactnativenavigation.controllers.SplashActivity;
 
 public class MainActivity extends SplashActivity {
     private final static int REQUEST_ENABLE_BT = 1;
-
+    private static final String TAG = "MainActivity";
     protected Messenger mainMessenger;
     protected Messenger serviceMessenger;
-    protected Handler handler=null;
+    protected Handler handler = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         initHandler();
         startMainService();
+
+        if (Build.VERSION.SDK_INT >= 23) {
+            initPermissions();
+        } else {
+            Log.e(TAG, "无需授权");
+        }
     }
 
-    protected void initBleService(){
-        final BluetoothManager bluetoothManager =(BluetoothManager)getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
+    protected void initBleService() {
+        final BluetoothManager bluetoothManager = (BluetoothManager) getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
         BleHandler.bluetoothAdapter = bluetoothManager.getAdapter();
         if (BleHandler.bluetoothAdapter == null || !BleHandler.bluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent,REQUEST_ENABLE_BT);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         }
     }
 
@@ -46,30 +60,31 @@ public class MainActivity extends SplashActivity {
         return R.layout.launch_screen;
     }
 
-    private void initHandler(){
-        handler = new Handler(){
+    private void initHandler() {
+        handler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
             }
         };
-        mainMessenger=new Messenger(handler);
+        mainMessenger = new Messenger(handler);
     }
 
-    public void unbindService(){
+    public void unbindService() {
         unbindService(connection);
     }
 
     @Override
-    protected void onDestroy(){
+    protected void onDestroy() {
         super.onDestroy();
-        try{
+        try {
             //initBleService();
             unbindService();
-        }catch(Exception e){}
+        } catch (Exception e) {
+        }
     }
 
-    protected void startMainService(){
-        Intent intent = new Intent(MainActivity.this,MainService.class);
+    protected void startMainService() {
+        Intent intent = new Intent(MainActivity.this, MainService.class);
         startService(intent);
         bindService(intent, connection, Service.BIND_AUTO_CREATE);
     }
@@ -95,4 +110,70 @@ public class MainActivity extends SplashActivity {
         public void onServiceDisconnected(ComponentName name) {
         }
     };
+
+    /**
+     * 初始化权限
+     */
+    public void initPermissions() {
+
+        PermissionUtil.requestMultiPermissions(this, mPermissionGrant);
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(final int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        PermissionUtil.requestPermissionsResult(this, requestCode, permissions, grantResults, mPermissionGrant);
+
+    }
+
+    public void openSetting(View view) {
+        Intent intent = new Intent();
+        intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        android.util.Log.d(TAG, "getPackageName(): " + getPackageName());
+        Uri uri = Uri.fromParts("package", getPackageName(), null);
+        intent.setData(uri);
+        startActivity(intent);
+    }
+
+    private PermissionUtil.PermissionGrant mPermissionGrant = new PermissionUtil.PermissionGrant() {
+        @Override
+        public void onPermissionGranted(int requestCode) {
+            switch (requestCode) {
+                case PermissionUtil.CODE_RECORD_AUDIO:
+                    Toast.makeText(MainActivity.this, "Result Permission Grant CODE_RECORD_AUDIO", Toast.LENGTH_SHORT).show();
+                    break;
+                case PermissionUtil.CODE_GET_ACCOUNTS:
+                    Toast.makeText(MainActivity.this, "Result Permission Grant CODE_GET_ACCOUNTS", Toast.LENGTH_SHORT).show();
+                    break;
+                case PermissionUtil.CODE_READ_PHONE_STATE:
+                    Toast.makeText(MainActivity.this, "Result Permission Grant CODE_READ_PHONE_STATE", Toast.LENGTH_SHORT).show();
+                    break;
+                case PermissionUtil.CODE_CALL_PHONE:
+                    Toast.makeText(MainActivity.this, "Result Permission Grant CODE_CALL_PHONE", Toast.LENGTH_SHORT).show();
+                    break;
+                case PermissionUtil.CODE_CAMERA:
+                    Toast.makeText(MainActivity.this, "Result Permission Grant CODE_CAMERA", Toast.LENGTH_SHORT).show();
+                    break;
+                case PermissionUtil.CODE_ACCESS_FINE_LOCATION:
+                    Toast.makeText(MainActivity.this, "Result Permission Grant CODE_ACCESS_FINE_LOCATION", Toast.LENGTH_SHORT).show();
+                    break;
+                case PermissionUtil.CODE_ACCESS_COARSE_LOCATION:
+                    Toast.makeText(MainActivity.this, "Result Permission Grant CODE_ACCESS_COARSE_LOCATION", Toast.LENGTH_SHORT).show();
+                    break;
+                case PermissionUtil.CODE_READ_EXTERNAL_STORAGE:
+                    Toast.makeText(MainActivity.this, "Result Permission Grant CODE_READ_EXTERNAL_STORAGE", Toast.LENGTH_SHORT).show();
+                    break;
+                case PermissionUtil.CODE_WRITE_EXTERNAL_STORAGE:
+                    Toast.makeText(MainActivity.this, "Result Permission Grant CODE_WRITE_EXTERNAL_STORAGE", Toast.LENGTH_SHORT).show();
+                    break;
+                case PermissionUtil.CODE_MULTI_PERMISSION:
+                    Toast.makeText(MainActivity.this, "Result All Permission Grant", Toast.LENGTH_SHORT).show();
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+
 }
