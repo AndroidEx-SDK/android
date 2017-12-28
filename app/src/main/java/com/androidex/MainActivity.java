@@ -38,7 +38,6 @@ public class MainActivity extends SplashActivity {
         super.onCreate(savedInstanceState);
         initHandler();
         startMainService();
-
         if (Build.VERSION.SDK_INT >= 23) {
             initPermissions();
         } else {
@@ -46,6 +45,9 @@ public class MainActivity extends SplashActivity {
         }
     }
 
+    /**
+     * 初始化Ble蓝牙服务
+     */
     protected void initBleService() {
         final BluetoothManager bluetoothManager = (BluetoothManager) getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
         BleHandler.bluetoothAdapter = bluetoothManager.getAdapter();
@@ -81,6 +83,7 @@ public class MainActivity extends SplashActivity {
             unbindService();
         } catch (Exception e) {
         }
+
     }
 
     protected void startMainService() {
