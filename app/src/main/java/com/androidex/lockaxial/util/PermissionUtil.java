@@ -141,16 +141,13 @@ public class PermissionUtil {
      * 一次申请多个权限
      */
     public static void requestMultiPermissions(final Activity activity, PermissionGrant grant) {
-
         final List<String> permissionsList = getNoGrantedPermission(activity, false);
         final List<String> shouldRationalePermissionsList = getNoGrantedPermission(activity, true);
-
         //TODO checkSelfPermission
         if (permissionsList == null || shouldRationalePermissionsList == null) {
             return;
         }
         Log.d(TAG, "requestMultiPermissions permissionsList:" + permissionsList.size() + ",shouldRationalePermissionsList:" + shouldRationalePermissionsList.size());
-
         if (permissionsList.size() > 0) {
             ActivityCompat.requestPermissions(activity, permissionsList.toArray(new String[permissionsList.size()]),
                     CODE_MULTI_PERMISSION);

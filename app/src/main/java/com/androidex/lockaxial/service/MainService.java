@@ -48,6 +48,7 @@ import rtc.sdk.iface.RtcClient;
  * 程序的主要后台服务
  */
 public class MainService extends Service implements WifiEvent {
+    private static final String TAG = "MainService";
     public static final int REGISTER_ACTIVITY_MAIN = 1; //MainActivity绑定Service的消息编号
     public static final int REGISTER_ACTIVITY_INBOUND = 2; //InboundActivity绑定Service的消息编号
     public static final int REGISTER_ACTIVITY_OUTBOUND = 3; //OutboundActivity绑定Service的消息编号
@@ -73,11 +74,11 @@ public class MainService extends Service implements WifiEvent {
     public static final int MSG_STOP_BLE_SCAN = 60006; //扫描蓝牙门禁设备
 
     /************结点科技提供的账号****************/
-    //public static final String APP_ID = "71012";
-    //public static final String APP_KEY ="71007b1c-6b75-4d6f-85aa-40c1f3b842ef";
+    public static final String APP_ID = "71012";
+    public static final String APP_KEY ="71007b1c-6b75-4d6f-85aa-40c1f3b842ef";
     /*************肖泽东申请的账号****************/
-    public static final String APP_ID = "71986";
-    public static final String APP_KEY = "c9f8f45f-d3ad-4876-b5fd-78f5796dab59";
+//    public static final String APP_ID = "71986";
+//    public static final String APP_KEY = "c9f8f45f-d3ad-4876-b5fd-78f5796dab59";
 
     public static final String RTC_TOKEN_STORAGE = "RTC_TOKEN_STORAGE";
     public static final String RTC_TOKEN_KEY = "RTC_TOKEN_KEY";
@@ -804,8 +805,10 @@ public class MainService extends Service implements WifiEvent {
             try {
                 parameter.put(RtcConst.kCallRemoteUri, userUrl);
                 if (type != null && type.equals("voice")) {
+                    Log.e(TAG,"音频通话");
                     parameter.put(RtcConst.kCallType, RtcConst.CallType_Audio);
                 } else {
+                    Log.e(TAG,"视屏通话");
                     parameter.put(RtcConst.kCallType, RtcConst.CallType_A_V);
                 }
             } catch (JSONException e) {
