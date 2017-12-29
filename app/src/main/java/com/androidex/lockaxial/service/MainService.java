@@ -45,6 +45,23 @@ import rtc.sdk.iface.DeviceListener;
 import rtc.sdk.iface.RtcClient;
 
 /**
+ * 12-28 19:45:01.512 25491-25491/com.androidex E/MainService: RTC连接
+ * 12-28 19:45:01.512 25491-25491/com.androidex V/MainService: ------>get open rtc message from<-------13168035997
+ * 12-28 19:45:01.512 25491-25491/com.androidex V/MainService: ------>init RTC<-------13168035997
+ * 12-28 19:45:01.852 25491-25491/com.androidex E/MainService: RTC连接
+ * 12-28 19:45:01.852 25491-25491/com.androidex V/MainService: ------>get open rtc message from<-------13168035997
+ * 12-28 19:45:03.282 25491-25491/com.androidex V/MainService: onInit,result=0
+ * 12-28 19:45:03.622 25491-25491/com.androidex V/MainService: try to get token for 13168035997
+ * 12-28 19:45:03.632 25491-25491/com.androidex V/MainService: rtcRegister:13168035997token:C6C47E1A32ED42558951B74595CC26C3
+ * 12-28 19:45:04.272 25491-25907/com.androidex V/MainService: onDeviceStateChanged,result=200
+ * 12-28 19:46:15.852 25491-25907/com.androidex E/MainService: 接收到呼叫
+ * 12-28 19:46:16.922 25491-25491/com.androidex I/MainService: register Inbound messenger
+ * 12-28 19:46:27.742 25491-25491/com.androidex E/MainService: 打开RTC
+ * 12-28 19:46:27.772 25491-25491/com.androidex E/MainService: 视频通话
+ * 12-28 19:46:28.722 25491-25907/com.androidex E/MainService: 连接完成
+ * 12-28 19:46:29.002 25491-25907/com.androidex E/MainService: 断开连接code=视频连接
+ * 12-28 19:46:48.022 25491-25491/com.androidex E/MainService: 挂断
+ * 12-28 19:46:48.582 25491-25491/com.androidex E/MainService: 视频断开连接
  * 程序的主要后台服务
  */
 public class MainService extends Service implements WifiEvent {
@@ -75,7 +92,7 @@ public class MainService extends Service implements WifiEvent {
 
     /************结点科技提供的账号****************/
     public static final String APP_ID = "71012";
-    public static final String APP_KEY ="71007b1c-6b75-4d6f-85aa-40c1f3b842ef";
+    public static final String APP_KEY = "71007b1c-6b75-4d6f-85aa-40c1f3b842ef";
     /*************肖泽东申请的账号****************/
 //    public static final String APP_ID = "71986";
 //    public static final String APP_KEY = "c9f8f45f-d3ad-4876-b5fd-78f5796dab59";
@@ -186,17 +203,20 @@ public class MainService extends Service implements WifiEvent {
                     DeviceConfig.SERVER_URL = (String) msg.obj;
                     initBleHandler();
                 } else if (msg.what == MSG_CONNECT_RTC) {
+                    Log.e(TAG, "RTC连接");
                     onOpenRtc((String) msg.obj);
                 } else if (msg.what == MSG_RELEASE_RTC) {
                     rtcLogout();
                 } else if (msg.what == MSG_GETTOKEN) {
                     onResponseGetToken(msg);
                 } else if (msg.what == MSG_REJECT_CALL) {//拒绝
+                    Log.e(TAG, "拒绝");
                     refuseDial();
                 } else if (msg.what == MSG_CLOSE_CALL) {//挂断
+                    Log.e(TAG, "挂断");
                     closeDial();
-
                 } else if (msg.what == MSG_OPEN_RTC) {
+                    Log.e(TAG, "打开RTC");
                     openRtc((String) msg.obj);
                 } else if (msg.what == MSG_OPEN_DOOR) {
                     openDoor();
@@ -263,6 +283,12 @@ public class MainService extends Service implements WifiEvent {
         }
     }
 
+    /**
+     * 设置RTC状态
+     *
+     * @param status
+     * @return
+     */
     private synchronized int setRtcStatus(int status) {
         if (status != 0) {
             if (status != rtcStatus) {
@@ -272,6 +298,9 @@ public class MainService extends Service implements WifiEvent {
         return rtcStatus;
     }
 
+    /**
+     * 停止呼叫
+     */
     protected void closeCallingConnection() {
         if (callConnection != null) {
             callConnection.disconnect();
@@ -280,12 +309,15 @@ public class MainService extends Service implements WifiEvent {
         }
     }
 
+    /**
+     * 初始化连接
+     */
     private void initRtcClient() {
         rtcClient = new RtcClientImpl();
         rtcClient.initialize(this.getApplicationContext(), new ClientListener() {
             @Override   //初始化结果回调
             public void onInit(int result) {
-                Log.v("MainService", "onInit,result=" + result);//常见错误9003:网络异常或系统时间差的太多
+                Log.v(TAG, "onInit,result=" + result);//常见错误9003:网络异常或系统时间差的太多
                 if (result == 0) {
                     setRtcStatus(2); //初始化成功
                     rtcClient.setAudioCodec(RtcConst.ACodec_OPUS);
@@ -293,7 +325,7 @@ public class MainService extends Service implements WifiEvent {
                     rtcClient.setVideoAttr(RtcConst.Video_SD);
                     startGetToken();
                 } else {
-                    Log.v("MainService", "onInit error -------------- result=" + result);//常见错误9003:网络异常或系统时间差的太多
+                    Log.v(TAG, "onInit error -------------- result=" + result);//常见错误9003:网络异常或系统时间差的太多
                     onInitRtcError();
                 }
             }
@@ -313,15 +345,20 @@ public class MainService extends Service implements WifiEvent {
     }
 
     private void onOpenRtc(String username) {
-        Log.v("MainService", "------>get open rtc message from<-------" + username);
+        Log.v(TAG, "------>get open rtc message from<-------" + username);
         if (this.username == null || !username.equals(this.username)) {
-            Log.v("MainService", "------>init RTC<-------" + username);
+            Log.v(TAG, "------>init RTC<-------" + username);
             setRtcStatus(1); //设置状态，获取到用户账号
             this.username = username;
             initRtcClient();
         }
     }
 
+    /**
+     * 获取TOKEN
+     *
+     * @param msg
+     */
     private void onResponseGetToken(Message msg) {
         HttpResult ret = (HttpResult) msg.obj;
         Log.v("MainService", "handleMessage getCapabilityToken status:" + ret.getStatus());
@@ -466,7 +503,11 @@ public class MainService extends Service implements WifiEvent {
         sendRtcStatusToReact(0);
     }
 
+    /**
+     * @param status
+     */
     protected void sendRtcStatusToReact(int status) {
+
         WritableMap params = Arguments.createMap();
         params.putInt("rtcStatus", setRtcStatus(status));
         ReactBridge.sendReactMessage("changeRtcStatus", params);
@@ -694,19 +735,23 @@ public class MainService extends Service implements WifiEvent {
         @Override
         public void onConnected() {
             if (call.status.equals("N")) {
+                Log.e(TAG, "连接完成 视频对讲");
                 sendInboundMessenge(InboundActivity.MSG_RTC_CONNECTED, null);
             } else {
+                Log.e(TAG, "连接完成 音频对讲");
                 sendOutboundMessenge(OutboundActivity.MSG_RTC_CONNECTED, null);
             }
         }
 
         @Override
         public void onDisconnected(int code) {
-            Log.v("MainService", "onDisconnected timerDur" + callConnection.getCallDuration());
+            Log.e(TAG, "断开连接 code=" + code);
+            Log.v(TAG, "onDisconnected timerDur" + callConnection.getCallDuration());
             callConnection = null;
             callingDisconnect();
             if (code != RtcConst.CallCode_Bye) {
                 if (call.status.equals("N")) {
+
                     ReactBridge.sendReactMessage("onCallFailed", null);
                 } else {
                     ReactBridge.sendReactMessage("onTalkFailed", null);
@@ -717,9 +762,11 @@ public class MainService extends Service implements WifiEvent {
         @Override
         public void onVideo() {
             if (call.status.equals("N")) {
-                sendInboundMessenge(InboundActivity.MSG_RTC_ONVIDEO, null);
+                Log.e(TAG, "视频连接");
+                sendInboundMessenge(InboundActivity.MSG_RTC_ONVIDEO_IN, null);
             } else {
-                sendOutboundMessenge(OutboundActivity.MSG_RTC_ONVIDEO, null);
+                Log.e(TAG, "音频连接");
+                sendOutboundMessenge(OutboundActivity.MSG_RTC_ONVIDEO_OUT, null);
             }
         }
 
@@ -731,8 +778,10 @@ public class MainService extends Service implements WifiEvent {
 
     private void callingDisconnect() {
         if (call.status.equals("N")) {
+            Log.e(TAG, "视频断开连接");
             sendInboundMessenge(InboundActivity.MSG_RTC_DISCONNECT, null);
         } else {
+            Log.e(TAG, "音频断开连接");
             sendOutboundMessenge(OutboundActivity.MSG_RTC_DISCONNECT, null);
         }
     }
@@ -744,7 +793,11 @@ public class MainService extends Service implements WifiEvent {
         ReactBridge.sendReactMessage("appendCallImage", params);
     }
 
+    /**
+     * 接收到呼叫
+     */
     protected void openDial() {
+        Log.e(TAG, "接收到呼叫");
         startRing();
         startInboundActivity(call);
     }
@@ -805,10 +858,10 @@ public class MainService extends Service implements WifiEvent {
             try {
                 parameter.put(RtcConst.kCallRemoteUri, userUrl);
                 if (type != null && type.equals("voice")) {
-                    Log.e(TAG,"音频通话");
+                    Log.e(TAG, "音频通话");
                     parameter.put(RtcConst.kCallType, RtcConst.CallType_Audio);
                 } else {
-                    Log.e(TAG,"视屏通话");
+                    Log.e(TAG, "视频通话");
                     parameter.put(RtcConst.kCallType, RtcConst.CallType_A_V);
                 }
             } catch (JSONException e) {
