@@ -21,7 +21,7 @@ public class BleHandler {
     private boolean isScanning=false;
     private HashMap<String,BluetoothDevice> deviceList=new HashMap<String,BluetoothDevice>();
 
-    public static BluetoothAdapter bluetoothAdapter=null;
+    public static BluetoothAdapter bluetoothAdapter=BluetoothAdapter.getDefaultAdapter();
 
     /**
      * 构造函数，创建一个BleHandler对象，需要传入Context

@@ -45,23 +45,6 @@ import rtc.sdk.iface.DeviceListener;
 import rtc.sdk.iface.RtcClient;
 
 /**
- * 12-28 19:45:01.512 25491-25491/com.androidex E/MainService: RTC连接
- * 12-28 19:45:01.512 25491-25491/com.androidex V/MainService: ------>get open rtc message from<-------13168035997
- * 12-28 19:45:01.512 25491-25491/com.androidex V/MainService: ------>init RTC<-------13168035997
- * 12-28 19:45:01.852 25491-25491/com.androidex E/MainService: RTC连接
- * 12-28 19:45:01.852 25491-25491/com.androidex V/MainService: ------>get open rtc message from<-------13168035997
- * 12-28 19:45:03.282 25491-25491/com.androidex V/MainService: onInit,result=0
- * 12-28 19:45:03.622 25491-25491/com.androidex V/MainService: try to get token for 13168035997
- * 12-28 19:45:03.632 25491-25491/com.androidex V/MainService: rtcRegister:13168035997token:C6C47E1A32ED42558951B74595CC26C3
- * 12-28 19:45:04.272 25491-25907/com.androidex V/MainService: onDeviceStateChanged,result=200
- * 12-28 19:46:15.852 25491-25907/com.androidex E/MainService: 接收到呼叫
- * 12-28 19:46:16.922 25491-25491/com.androidex I/MainService: register Inbound messenger
- * 12-28 19:46:27.742 25491-25491/com.androidex E/MainService: 打开RTC
- * 12-28 19:46:27.772 25491-25491/com.androidex E/MainService: 视频通话
- * 12-28 19:46:28.722 25491-25907/com.androidex E/MainService: 连接完成
- * 12-28 19:46:29.002 25491-25907/com.androidex E/MainService: 断开连接code=视频连接
- * 12-28 19:46:48.022 25491-25491/com.androidex E/MainService: 挂断
- * 12-28 19:46:48.582 25491-25491/com.androidex E/MainService: 视频断开连接
  * 程序的主要后台服务
  */
 public class MainService extends Service implements WifiEvent {
@@ -94,8 +77,8 @@ public class MainService extends Service implements WifiEvent {
     public static final String APP_ID = "71012";
     public static final String APP_KEY = "71007b1c-6b75-4d6f-85aa-40c1f3b842ef";
     /*************肖泽东申请的账号****************/
-//    public static final String APP_ID = "71986";
-//    public static final String APP_KEY = "c9f8f45f-d3ad-4876-b5fd-78f5796dab59";
+//  public static final String APP_ID = "71986";
+//  public static final String APP_KEY = "c9f8f45f-d3ad-4876-b5fd-78f5796dab59";
 
     public static final String RTC_TOKEN_STORAGE = "RTC_TOKEN_STORAGE";
     public static final String RTC_TOKEN_KEY = "RTC_TOKEN_KEY";
@@ -240,9 +223,9 @@ public class MainService extends Service implements WifiEvent {
                     String deviceKey = (String) msg.obj;
                     openTalk(deviceKey);
                 } else if (msg.what == MSG_SCAN_BLE_LOCK) {
-                    bleHandler.startScan();
+                    //bleHandler.startScan();
                 } else if (msg.what == MSG_STOP_BLE_SCAN) {
-                    bleHandler.stopScan();
+                    //bleHandler.stopScan();
                 } else if (msg.what == MSG_FIND_BLE_LOCK) {
                     String deviceName = (String) msg.obj;
                     WritableMap params = Arguments.createMap();
@@ -254,7 +237,7 @@ public class MainService extends Service implements WifiEvent {
                     String deviceName = values[0];
                     String username = values[1];
                     String unitNo = values[2];
-                    bleHandler.openBleLock(deviceName, username, unitNo);
+                    //bleHandler.openBleLock(deviceName, username, unitNo);
                 } else if (msg.what == MSG_OPEN_BLE_LOCK_FAILED) {
                     int code = (Integer) msg.obj;
                     WritableMap params = Arguments.createMap();

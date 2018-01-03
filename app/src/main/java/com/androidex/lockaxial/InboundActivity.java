@@ -31,20 +31,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-/**
- * /InboundActivity: 初始化数据
- * 12-28 19:46:16.662 25491-25491/com.androidex E/InboundActivity: 获取Service端的Messenger
- * 12-28 19:46:20.272 25491-25491/com.androidex E/InboundActivity: 获取到图片地址
- * 12-28 19:46:20.272 25491-28323/com.androidex E/InboundActivity: 根据URL获取图片
- * 12-28 19:46:20.392 25491-28323/com.androidex E/InboundActivity: 发送Inbound界面的消息 code=20001
- * 12-28 19:46:20.392 25491-25491/com.androidex E/InboundActivity: 获取到图片bitmap
- * 12-28 19:46:27.742 25491-25491/com.androidex E/InboundActivity: 发送主消息带数据的code2=20031
- * 12-28 19:46:28.722 25491-25491/com.androidex E/InboundActivity: RTC 连接
- * 12-28 19:46:29.002 25491-25491/com.androidex E/InboundActivity: 接收到视频呼叫
- * 12-28 19:46:29.002 25491-25491/com.androidex E/InboundActivity: 初始化videoView
- * 12-28 19:46:47.962 25491-25491/com.androidex E/InboundActivity: 发送主消息code1=20035
- * 12-28 19:46:48.582 25491-25491/com.androidex E/InboundActivity: RTC 断开连接
- */
 public class InboundActivity extends Activity {
     private static final String TAG = "InboundActivity";
     public static final int MSG_RTC_ONVIDEO_IN = 10011;
