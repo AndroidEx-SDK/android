@@ -8,6 +8,7 @@ import com.androidex.lockaxial.config.DeviceConfig;
 import com.androidex.lockaxial.util.ReactBridge;
 import com.androidex.lockaxial.util.ReactBridgePackage;
 import com.androidex.lockaxial.util.UDPClientBridgePackage;
+import com.facebook.react.BuildConfig;
 import com.facebook.react.ReactPackage;
 import com.facebook.soloader.SoLoader;
 import com.i18n.reactnativei18n.ReactNativeI18n;
@@ -27,8 +28,8 @@ public class MainApplication extends NavigationApplication{
 
     @Override
     public boolean isDebug() {
-        //return BuildConfig.DEBUG;
-        return false;
+        return BuildConfig.DEBUG;
+        //return false;
     }
 
     @Nullable
