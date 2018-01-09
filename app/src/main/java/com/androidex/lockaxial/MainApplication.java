@@ -4,11 +4,11 @@ import android.app.Application;
 import android.os.Messenger;
 import android.support.annotation.Nullable;
 
+import com.androidex.BuildConfig;
 import com.androidex.lockaxial.config.DeviceConfig;
 import com.androidex.lockaxial.util.ReactBridge;
 import com.androidex.lockaxial.util.ReactBridgePackage;
 import com.androidex.lockaxial.util.UDPClientBridgePackage;
-import com.facebook.react.BuildConfig;
 import com.facebook.react.ReactPackage;
 import com.facebook.soloader.SoLoader;
 import com.i18n.reactnativei18n.ReactNativeI18n;
