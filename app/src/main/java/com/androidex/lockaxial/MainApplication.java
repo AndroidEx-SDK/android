@@ -4,6 +4,7 @@ import android.app.Application;
 import android.os.Messenger;
 import android.support.annotation.Nullable;
 
+import com.androidex.BuildConfig;
 import com.androidex.lockaxial.config.DeviceConfig;
 import com.androidex.lockaxial.util.ReactBridge;
 import com.androidex.lockaxial.util.ReactBridgePackage;

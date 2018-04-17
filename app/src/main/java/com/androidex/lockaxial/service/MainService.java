@@ -734,7 +734,6 @@ public class MainService extends Service implements WifiEvent {
             callingDisconnect();
             if (code != RtcConst.CallCode_Bye) {
                 if (call.status.equals("N")) {
-
                     ReactBridge.sendReactMessage("onCallFailed", null);
                 } else {
                     ReactBridge.sendReactMessage("onTalkFailed", null);
@@ -799,8 +798,8 @@ public class MainService extends Service implements WifiEvent {
     protected void refuseDial() {//拒绝
         stopRing();
         closeRtc();
-        String userUrl = RtcRules.UserToRemoteUri_new(call.from, RtcConst.UEType_Any);
-        device.sendIm(userUrl, "text/plain", "refuse call");
+        //String userUrl = RtcRules.UserToRemoteUri_new(call.from, RtcConst.UEType_Any);
+        //device.sendIm(userUrl, "text/plain", "refuse call");
         Log.e("call====", "refuse");
     }
 
@@ -851,7 +850,10 @@ public class MainService extends Service implements WifiEvent {
             }
             callConnection = device.connect(parameter.toString(), connectionListener);
             if (callConnection == null) {
+                Log.i("xiao_","callConnection = null");
                 closeRtc();
+            }else{
+                Log.i("xiao_","callConnection != null");
             }
         }
     }

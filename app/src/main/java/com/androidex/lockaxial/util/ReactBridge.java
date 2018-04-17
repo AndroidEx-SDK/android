@@ -1,5 +1,7 @@
 package com.androidex.lockaxial.util;
 
+import android.content.ComponentName;
+import android.content.Intent;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
@@ -126,5 +128,20 @@ public class ReactBridge extends ReactContextBaseJavaModule {
     @ReactMethod
     public void verifySms(String phone,String code){
         SMSSDK.submitVerificationCode("86",phone,code);
+    }
+
+    @ReactMethod
+    public void openDiyuApplication(String username,String password){ //跳转到第宇app
+        try {
+            Intent i = new Intent();
+            ComponentName componentName = new ComponentName("com.pureman.dysmart", "com.pureman.dysmart.HomeActivity");
+            i.putExtra("username", username);
+            i.putExtra("password", password);
+            i.setComponent(componentName);
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            currentReactContext.startActivity(i);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }
