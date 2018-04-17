@@ -28,8 +28,8 @@ public class MainApplication extends NavigationApplication{
 
     @Override
     public boolean isDebug() {
-        //return BuildConfig.DEBUG;
-        return false;
+        return BuildConfig.DEBUG;
+        //return false;
     }
 
     @Nullable
