@@ -8,11 +8,13 @@ import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.androidex.lockaxial.InfoManagerActivity;
 import com.androidex.lockaxial.service.MainService;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
@@ -143,5 +145,17 @@ public class ReactBridge extends ReactContextBaseJavaModule {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    @ReactMethod
+    public void openInfoManagerActivity(int userid,String data,String currentUnit,String token){
+        Intent i = new Intent();
+        i.setClass(currentReactContext, InfoManagerActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        i.putExtra("data",data);
+        i.putExtra("currentUnit",currentUnit);
+        i.putExtra("userid",userid);
+        i.putExtra("token",token);
+        currentReactContext.startActivity(i);
     }
 }

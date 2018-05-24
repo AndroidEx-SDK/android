@@ -1,7 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.androidex"
-    android:versionCode="2"
-    android:versionName="1.1">
+    package="com.androidex">
 
     <uses-sdk
         android:minSdkVersion="18"
@@ -61,6 +59,8 @@
     <permission android:name="android.permission.GET_TASKS" />
     <permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
+    <uses-permission android:name="android.permission.NFC" />
+
     <application
         android:name="com.androidex.lockaxial.MainApplication"
         android:allowBackup="true"
@@ -113,6 +113,10 @@
         <activity
             android:name=".lockaxial.OutboundActivity"
             android:launchMode="singleTask"></activity>
+        <activity android:name=".lockaxial.InfoManagerActivity"></activity>
+        <activity android:name=".lockaxial.CardActivity"></activity>
+        <activity android:name=".lockaxial.FaceActivity"></activity>
+        <activity android:name=".lockaxial.CardAddActivity"></activity>
     </application>
 
 </manifest>
