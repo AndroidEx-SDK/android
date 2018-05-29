@@ -305,7 +305,7 @@ public class MainService extends Service implements WifiEvent {
                     setRtcStatus(2); //初始化成功
                     rtcClient.setAudioCodec(RtcConst.ACodec_OPUS);
                     rtcClient.setVideoCodec(RtcConst.VCodec_VP8);
-                    rtcClient.setVideoAttr(RtcConst.Video_SD);
+                    rtcClient.setVideoAttr(100);
                     startGetToken();
                 } else {
                     Log.v(TAG, "onInit error -------------- result=" + result);//常见错误9003:网络异常或系统时间差的太多
