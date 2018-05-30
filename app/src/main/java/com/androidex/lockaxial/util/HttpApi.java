@@ -1,9 +1,25 @@
 package com.androidex.lockaxial.util;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.drawable.Drawable;
+import android.hardware.Camera;
 import android.util.Log;
+import android.widget.ImageView;
+
+import com.androidex.R;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
 
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -76,5 +92,56 @@ public class HttpApi {
             pe.printStackTrace();
             return null;
         }
+    }
+
+    public static void loadImage(Context context,String url, final ImageView imageView){
+        Glide.with(context).load(url).into(new SimpleTarget<GlideDrawable>() {
+            @Override
+            public void onResourceReady(GlideDrawable resource, GlideAnimation<? super GlideDrawable> glideAnimation) {
+                imageView.setImageDrawable(resource);
+            }
+
+            @Override
+            public void onLoadFailed(Exception e, Drawable errorDrawable) {
+                imageView.setImageResource(R.drawable.ic_def_bg);
+            }
+        });
+    }
+
+    public static  File savePictureFile(Context context,byte[] data,int direction){
+        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+        bitmap = BitmapRotate(bitmap,direction);
+        //File path = new File(getFilesDir().getPath()+"/IMAGE"); ///sdcard
+        File path = new File(context.getFilesDir().getPath()+"/face");
+        if(!path.exists()){
+            path.mkdirs();
+        }
+        File file = new File(path.toString(), System.currentTimeMillis() + ".jpg");
+        if(!file.exists()){
+            try {
+                file.createNewFile();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        try {
+            FileOutputStream outputStream = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 30, outputStream);
+            outputStream.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return file;
+    }
+
+    private static  Bitmap BitmapRotate(Bitmap bitmap,int direction){
+        Matrix matrix = new Matrix();
+        if(direction == Camera.CameraInfo.CAMERA_FACING_BACK){
+            matrix.postRotate(90f);
+        }else{
+            matrix.postScale(-1f, 1f);
+            matrix.postRotate(90f);
+        }
+        return Bitmap.createBitmap(bitmap,0,0,bitmap.getWidth(),bitmap.getHeight(),matrix,true);
     }
 }

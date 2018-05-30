@@ -117,6 +117,8 @@
         <activity android:name=".lockaxial.CardActivity"></activity>
         <activity android:name=".lockaxial.FaceActivity"></activity>
         <activity android:name=".lockaxial.CardAddActivity"></activity>
+        <activity android:name=".lockaxial.FaceAddActivity"></activity>
+        <activity android:name=".lockaxial.FaceRegisterActivity"></activity>
     </application>
 
 </manifest>
