@@ -1,5 +1,6 @@
 package com.androidex.lockaxial.util;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -7,8 +8,13 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Log;
+import android.view.View;
+import android.view.Window;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.androidex.R;
 import com.bumptech.glide.Glide;
@@ -143,5 +149,35 @@ public class HttpApi {
             matrix.postRotate(90f);
         }
         return Bitmap.createBitmap(bitmap,0,0,bitmap.getWidth(),bitmap.getHeight(),matrix,true);
+    }
+
+    public static Dialog createDialog(Context context, String msg) {
+        Dialog dialog = null;
+        dialog = new Dialog(context, R.style.image_dialog);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        View main = View.inflate(context, R.layout.dialog_main, null);
+        dialog.setContentView(main);
+        TextView tv = (TextView) main.findViewById(R.id.msg);
+        tv.setText(msg);
+        dialog.setCancelable(false);
+        return dialog;
+    }
+
+    public static boolean isNetworkAvailable(Context context) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager == null) {
+            return false;
+        } else {
+            NetworkInfo[] networkInfo = connectivityManager.getAllNetworkInfo();
+            if (networkInfo != null && networkInfo.length > 0) {
+                for (int i = 0; i < networkInfo.length; i++) {
+                    networkInfo[i].isAvailable();
+                    if (networkInfo[i].getState() == NetworkInfo.State.CONNECTED) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 }

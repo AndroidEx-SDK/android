@@ -194,6 +194,25 @@ public class FaceDB {
 		}
 	}
 
+	public File saveData(AFR_FSDKFace face,String name){
+		try {
+			FileOutputStream fs = new FileOutputStream(mDBPath + "/" + name + ".data", true);
+			ExtOutputStream bos = new ExtOutputStream(fs);
+			bos.writeBytes(face.getFeatureData());
+			bos.close();
+			fs.close();
+			File f = new File(mDBPath + "/" + name + ".data");
+			if(f.exists()){
+				return f;
+			}else{
+				return null;
+			}
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 	public boolean delete(String name) {
 		try {
 			//check if already registered.

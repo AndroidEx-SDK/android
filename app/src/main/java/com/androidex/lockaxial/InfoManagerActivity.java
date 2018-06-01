@@ -3,6 +3,7 @@ package com.androidex.lockaxial;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.view.View;
 
@@ -12,20 +13,32 @@ import com.androidex.R;
  * Created by Administrator on 2018/5/15.
  */
 
-public class InfoManagerActivity extends Activity {
+public class InfoManagerActivity extends BaseActivity {
     private String houseData;
     private String currentUnit;
     private int userid;
     private String token;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_infomanager);
-        houseData = getIntent().getStringExtra("data");
-        currentUnit = getIntent().getStringExtra("currentUnit");
-        userid = getIntent().getIntExtra("userid",-1);
-        token = getIntent().getStringExtra("token");
+    public void initParms(Intent intent) {
+        houseData = intent.getStringExtra("data");
+        currentUnit = intent.getStringExtra("currentUnit");
+        userid = intent.getIntExtra("userid",-1);
+        token = intent.getStringExtra("token");
+    }
+
+    @Override
+    public int bindView() {
+        return R.layout.activity_infomanager;
+    }
+
+    @Override
+    public void initView(View v) {
+
+    }
+
+    @Override
+    public void onMessage(Message msg) {
 
     }
 

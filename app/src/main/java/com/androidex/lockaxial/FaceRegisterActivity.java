@@ -1,6 +1,11 @@
 package com.androidex.lockaxial;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -13,11 +18,20 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
+import android.view.Window;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.androidex.R;
 import com.androidex.lockaxial.util.BitmapUtils;
 import com.androidex.lockaxial.util.FaceDB;
+import com.androidex.lockaxial.util.HttpApi;
+import com.androidex.lockaxial.util.RegisterEvent;
+import com.androidex.lockaxial.util.RegisterSubmitAlert;
+import com.androidex.lockaxial.util.SubmitEvent;
+import com.androidex.lockaxial.util.UploadUtil;
 import com.arcsoft.facedetection.AFD_FSDKEngine;
 import com.arcsoft.facedetection.AFD_FSDKError;
 import com.arcsoft.facedetection.AFD_FSDKFace;
@@ -28,6 +42,11 @@ import com.arcsoft.facerecognition.AFR_FSDKFace;
 import com.arcsoft.facerecognition.AFR_FSDKVersion;
 import com.guo.android_extend.image.ImageConverter;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.json.JSONObject;
+
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -37,7 +56,7 @@ import java.util.List;
  * Created by Administrator on 2018/5/30.
  */
 
-public class FaceRegisterActivity extends Activity implements SurfaceHolder.Callback{
+public class FaceRegisterActivity extends BaseActivity implements SurfaceHolder.Callback{
     private SurfaceView mSurfaceView;
     private SurfaceHolder mSurfaceHolder;
     private String path;
@@ -51,33 +70,44 @@ public class FaceRegisterActivity extends Activity implements SurfaceHolder.Call
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what){
-                case 0x01:{
-                    showL("FD初始化失败");
-                    showToast("系统错误，请联系管理员");
+                case 0x06:{
+                    String result = (String) msg.obj;
+                    try{
+                        JSONObject j = new JSONObject(result);
+                        String imu = j.getString("imageUrl");
+                        String dau = j.getString("dataUrl");
+                        if(imu!=null && imu.length()>0
+                                && dau!=null && dau.length()>0){
+                            new submitFaceThread(userid,roomid,blockid,imu,dau,faceName,communityId).start();
+                        }
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
                 }break;
-                case 0x02:{
-                    showL("FR初始化失败");
-                    showToast("系统错误，请联系管理员");
-                }break;
-                case 0x03:{
-                    showToast("检查到人脸数据");
-                }break;
-                case 0x04:{
-                    showToast("无法检测人脸特征");
-                }break;
-                case 0x05:{
-                    showToast("未发现人脸");
+                case 0x07:{
+                    hideLoading();
+                    String result = (String) msg.obj;
+                    showL("增加人脸数据结果："+result);
+                    FaceRegisterActivity.this.finish();
                 }break;
             }
         }
     };
 
 
+    private String houseData;
+    private String currentUnit;
+    private String token;
+    private int userid;
+
+    private int roomid = -1;
+    private int blockid = -1;
+    private int communityId = -1;
+    private String faceName;
+
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_faceregister);
-        if(!getPath()){
+    public void initParms(Intent intent) {
+        if(!getPath(intent)){
             showToast("无效图片地址");
             this.finish();
         }
@@ -86,29 +116,101 @@ public class FaceRegisterActivity extends Activity implements SurfaceHolder.Call
             showToast("无效图片");
             this.finish();
         }
-        faceDB = new FaceDB(getFilesDir().getPath());
+        houseData = intent.getStringExtra("data");
+        currentUnit = intent.getStringExtra("currentUnit");
+        userid = intent.getIntExtra("userid",-1);
+        token = intent.getStringExtra("token");
+    }
+
+    @Override
+    public int bindView() {
+        return R.layout.activity_faceregister;
+    }
+
+    @Override
+    public void initView(View v) {
+        EventBus.getDefault().register(this);
+        faceDB = new FaceDB(getFilesDir().getPath()+"/face");
         mSurfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         src.set(0, 0, mBitmap.getWidth(), mBitmap.getHeight());
         mSurfaceView.getHolder().addCallback(this);
         new faceThread().start();
     }
 
-    private void showToast(final String msg){
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(FaceRegisterActivity.this,msg,Toast.LENGTH_SHORT).show();
+    @Override
+    public void onMessage(Message msg) {
+        switch (msg.what){
+            case 0x01:{
+                showL("FD初始化失败");
+                showToast("系统错误，请联系管理员");
+                EventBus.getDefault().post(new RegisterEvent("Exit"));
+                finish();
+            }break;
+            case 0x02:{
+                showL("FR初始化失败");
+                showToast("系统错误，请联系管理员");
+                EventBus.getDefault().post(new RegisterEvent("Exit"));
+                finish();
+            }break;
+            case 0x03:{
+                showToast("检查到人脸数据");
+                RegisterSubmitAlert registerSubmitAlert = new RegisterSubmitAlert(FaceRegisterActivity.this,R.style.Dialog,houseData,currentUnit);
+                registerSubmitAlert.show();
+            }break;
+            case 0x04:{
+                showToast("无法检测人脸特征，请重试");
+                finish();
+            }break;
+            case 0x05:{
+                showToast("未发现人脸,请重试");
+                finish();
+            }break;
+            case 0x06:{
+                hideLoadingDialog();
+                if(isNetWork()){
+                    showToast("文件提交失败,请重试");
+                }else{
+                    showToast("文件提交失败,请检查网络");
+                }
+                finish();
+            }break;
+            case 0x07:{
+                String result = (String) msg.obj;
+                try{
+                    JSONObject j = new JSONObject(result);
+                    String uploadImageUrl = j.getString("uploadImageUrl");
+                    String uploadDataUrl = j.getString("uploadDataUrl");
+                    new submitFaceThread(userid,roomid,blockid,uploadImageUrl,uploadDataUrl,faceName,communityId).start();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }break;
+
+        }
+    }
+
+    @Subscribe
+    public void onEventMessage(SubmitEvent event){
+        if(event.what == 0x01){
+            this.finish();
+        }else if(event.what == 0x02){
+            faceName = event.msg;
+            roomid = event.rid;
+            blockid = event.bid;
+            communityId = event.cid;
+            if(mAFR_FSDKFace!=null){
+                File f = faceDB.saveData(mAFR_FSDKFace,faceName);
+                if(f!=null && f.exists()){
+                    uploadFile(path,f.toString());
+                }
             }
-        });
+        }
     }
 
-    private void showL(String msg){
-        Log.i("xiao_",msg);
-    }
 
-    private boolean getPath(){
+    private boolean getPath(Intent intent){
         try{
-            path = getIntent().getStringExtra("file");
+            path = intent.getStringExtra("file");
             if(path == null || path.length()<=0){
                 return false;
             }
@@ -132,6 +234,87 @@ public class FaceRegisterActivity extends Activity implements SurfaceHolder.Call
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
         mSurfaceHolder = null;
+    }
+
+
+    private void uploadFile(final String imagePath,final String dataPath){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String uploadImageUrl = "";
+                File imageFile = new File(imagePath);
+                if(imageFile.exists()){
+                    String iurl = "http://www.lockaxial.com/app/upload/image";
+                    uploadImageUrl = UploadUtil.uploadFile(token,imageFile,iurl);
+                    if(uploadImageUrl == null){
+                        uploadImageUrl = "";
+                    }
+                }
+                String uploadDataUrl = "";
+                File dataFile = new File(dataPath);
+                if(dataFile.exists()){
+                    String durl = "http://www.lockaxial.com/app/upload/file";
+                    uploadDataUrl = UploadUtil.uploadFile(token,dataFile,durl);
+                    if(uploadDataUrl == null){
+                        uploadDataUrl = "";
+                    }
+                }else{
+                    uploadDataUrl = "";
+                }
+                showL("data地址："+uploadDataUrl);
+                showL("Image地址："+uploadImageUrl);
+                if(uploadDataUrl.length()<=0 || uploadImageUrl.length()<=0){
+                    mHandler.sendEmptyMessage(0x06);
+                }else{
+                    try{
+                        JSONObject j = new JSONObject();
+                        j.put("uploadImageUrl",uploadImageUrl);
+                        j.put("uploadDataUrl",uploadDataUrl);
+                        Message message = Message.obtain();
+                        message.what = 0x07;
+                        message.obj = j.toString();
+                        mHandler.sendMessage(message);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
+    }
+
+    class submitFaceThread extends Thread{
+        private int uid;
+        private int rid;
+        private int bid;
+        private String iu;
+        private String du;
+        private String fn;
+        private int cid;
+        public submitFaceThread(int uid,int rid,int bid,String iu,String du,String fn,int cid){
+            this.uid = uid;
+            this.rid = rid;
+            this.bid = bid;
+            this.iu = iu;
+            this.du = du;
+            this.fn = fn;
+            this.cid = cid;
+        }
+
+        @Override
+        public void run() {
+            String url = "http://www.lockaxial.com/app/rfid/appPostFace?userid="+uid;
+            url = url+"&roomid="+rid;
+            url = url+"&blockid="+bid;
+            url = url+"&imageUrl="+iu;
+            url = url+"&dataUrl="+du;
+            url = url+"&faceName="+fn;
+            url = url+"&communityId="+cid;
+            String result = HttpApi.getInstance().loadHttpforGet(url,token);
+            Message message = Message.obtain();
+            message.what = 0x07;
+            message.obj = result;
+            mHandler.sendMessage(message);
+        }
     }
 
     class faceThread extends Thread{

@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.os.Bundle;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
@@ -28,7 +29,7 @@ import org.json.JSONObject;
  * Created by Administrator on 2018/5/17.
  */
 
-public class CardAddActivity extends Activity {
+public class CardAddActivity extends BaseActivity {
     private TextView title;
     private NfcAdapter mNfcAdapter;
     private PendingIntent pi;
@@ -50,8 +51,6 @@ public class CardAddActivity extends Activity {
     private String unitNo;
     private int blockid;
 
-    private Dialog dialog;
-
     private String url;
 
     public void onSubmit(View v){
@@ -67,8 +66,11 @@ public class CardAddActivity extends Activity {
         }
         cardnumber = strNumber;
         cardname = strName;
-        dialog = showLoading(this,"正在提交...");
-        dialog.show();
+        postCard();
+    }
+
+    private void postCard(){
+        showLoading("正在提交...");
         url = "http://www.lockaxial.com/app/rfid/appPostCard?userid="+this.userid;
         url = url +"&roomid="+this.roomid;
         url = url +"&cardnumber="+this.cardnumber;
@@ -77,26 +79,20 @@ public class CardAddActivity extends Activity {
         url = url +"&unitNo="+this.unitNo;
         url = url +"&blockid="+this.blockid;
         Log.i("xiao_","录卡地址："+url);
-        new Thread(new Runnable() {
+        asyncHttp(url, token, new AsyncCallBack() {
             @Override
-            public void run() {
-                String result= HttpApi.getInstance().loadHttpforGet(url,token);
-                try{
-                    JSONObject j = new JSONObject(result);
-                    int code = j.getInt("code");
-                    resultCode(code);
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
+            public void onResult(String result) {
+                Message message = new Message();
+                message.what = 0x01;
+                message.obj = result;
+                mHandler.sendMessage(message);
             }
-        }).start();
+        });
     }
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_cardadd);
-        roomData = getIntent().getStringExtra("data");
+    public void initParms(Intent intent) {
+        roomData = intent.getStringExtra("data");
         if(roomData!=null && roomData.length()>0){
             try{
                 roomJsonArray = new JSONArray(roomData);
@@ -108,18 +104,22 @@ public class CardAddActivity extends Activity {
                 e.printStackTrace();
             }
         }
-        currentUnit = getIntent().getStringExtra("currentUnit");
-        userid = getIntent().getIntExtra("userid",-1);
+        currentUnit = intent.getStringExtra("currentUnit");
+        userid = intent.getIntExtra("userid",-1);
         if(userid <= 0){
             Toast.makeText(this,"请先登录...",Toast.LENGTH_SHORT).show();
             this.finish();
         }
-        token = getIntent().getStringExtra("token");
-        initView();
-        initData();
+        token = intent.getStringExtra("token");
     }
 
-    private void initView(){
+    @Override
+    public int bindView() {
+        return R.layout.activity_cardadd;
+    }
+
+    @Override
+    public void initView(View v) {
         title = (TextView) findViewById(R.id.title);
         title.setText("录卡");
         name = (EditText) findViewById(R.id.name);
@@ -129,10 +129,35 @@ public class CardAddActivity extends Activity {
             @Override
             public void onClick(View view) {
                 if(roomJsonArray!=null && roomArray!=null && roomArray.length>0){
-                    buildAlert(roomArray).show();
+                    buildAlert(roomArray, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            room.setText(roomArray[i]);
+                            try {
+                                roomid = roomJsonArray.getJSONObject(i).getInt("rid");
+                                lockid = roomJsonArray.getJSONObject(i).getInt("blockId");
+                                communityId = roomJsonArray.getJSONObject(i).getInt("communityId");
+                                unitNo = roomJsonArray.getJSONObject(i).getString("unitNo");
+                                blockid = roomJsonArray.getJSONObject(i).getInt("blockId");
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+                        }
+                    });
                 }
             }
         });
+        initData();
+    }
+
+    @Override
+    public void onMessage(Message msg) {
+        switch (msg.what){
+            case 0x01:
+                hideLoadingDialog();
+                handerResult((String) msg.obj);
+                break;
+        }
     }
 
     private void initData(){
@@ -171,10 +196,11 @@ public class CardAddActivity extends Activity {
         }
     }
 
-    private void resultCode(final int code){
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
+    private void handerResult(String result){
+        if(result!=null && result.length()>0){
+            try{
+                JSONObject j = new JSONObject(result);
+                int code = j.has("code")?j.getInt("code"):-1;
                 String msg = "";
                 if(code == 0){
                     msg = "录卡成功";
@@ -190,50 +216,21 @@ public class CardAddActivity extends Activity {
                     msg = "录卡失败，请联系管理员";
                 }else if(code == 6){
                     msg = "您不是业主，不能使用录卡功能";
+                }else{
+                    if(!isNetWork()){
+                        msg = "请检查网络";
+                    }
                 }
                 showToast(msg);
-                hideLoading();
                 if(code == 0){
                     CardAddActivity.this.finish();
                 }
+            }catch (Exception e){
+                e.printStackTrace();
             }
-        });
-    }
-
-    private void hideLoading(){
-        if(dialog!=null && dialog.isShowing()){
-            dialog.dismiss();
-            dialog = null;
+        }else{
+            showToast("请检查网络");
         }
-    }
-
-    private void showToast(final String msg){
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(CardAddActivity.this,msg,Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private AlertDialog buildAlert(String[] data){
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setItems(data, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                room.setText(roomArray[i]);
-                try {
-                    roomid = roomJsonArray.getJSONObject(i).getInt("rid");
-                    lockid = roomJsonArray.getJSONObject(i).getInt("blockId");
-                    communityId = roomJsonArray.getJSONObject(i).getInt("communityId");
-                    unitNo = roomJsonArray.getJSONObject(i).getString("unitNo");
-                    blockid = roomJsonArray.getJSONObject(i).getInt("blockId");
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-        });
-        return builder.create();
     }
 
     private String processIntent(Intent intent) {
@@ -261,19 +258,6 @@ public class CardAddActivity extends Activity {
         }
         return out;
     }
-
-    public Dialog showLoading(Context context, String msg) {
-        Dialog dialog = null;
-        dialog = new Dialog(context, R.style.image_dialog);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        View main = View.inflate(context, R.layout.dialog_main, null);
-        dialog.setContentView(main);
-        TextView tv = (TextView) main.findViewById(R.id.msg);
-        tv.setText(msg);
-        dialog.setCancelable(false);
-        return dialog;
-    }
-
 
     public void onBackEvent(View v){
         this.finish();

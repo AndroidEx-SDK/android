@@ -37,7 +37,7 @@ import java.util.UUID;
  * Created by Administrator on 2018/5/15.
  */
 
-public class CardActivity  extends Activity{
+public class CardActivity  extends BaseActivity{
     private ListView mlv;
     private TextView title;
     private TextView house_name;
@@ -54,81 +54,21 @@ public class CardActivity  extends Activity{
     private int roomid = -1;
     private int communityId = -1;
 
-    private Dialog dialog;
-
-    private Handler mHandler = new Handler(){
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what){
-                case 0x01: {
-                    hideLoading();
-                    String result = (String) msg.obj;
-                    showL(result);
-                    if (result != null && result.length() > 0) {
-                        try {
-                            JSONObject j = new JSONObject(result);
-                            int code = j.getInt("code");
-                            if (code == 0) {
-                                JSONArray array = j.getJSONArray("data");
-                                if (array != null && array.length() > 0) {
-                                    List<CardBean> d = new ArrayList<>();
-                                    for (int i = 0; i < array.length(); i++) {
-                                        String cardName = array.getJSONObject(i).getString("cardname");
-                                        String cardNumber = array.getJSONObject(i).getString("cardnumber");
-                                        String createDate = array.getJSONObject(i).getString("credate");
-                                        d.add(new CardBean(cardName, cardNumber, createDate));
-                                    }
-                                    showData(d);
-                                }else{
-                                    showData(null);
-                                }
-                            } else {
-                                showData(null);
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }break;
-                case 0x02: {
-                    hideLoading();
-                    showToast("请先选择房间号");
-                }break;
-                case 0x03: {
-                    hideLoading();
-                    String result = (String) msg.obj;
-                    if(result!=null && result.length()>0){
-                        try{
-                            JSONObject j = new JSONObject(result);
-                            int code = j.getInt("code");
-                            if(code == 0){
-                                showToast("操作成功");
-                                new getCardThread().start();
-                            }else if(code == 1){
-                                showToast("操作失败，您不是业主");
-                            }else if(code == 2){
-                                showToast("操作失败，请联系管理员");
-                            }else if(code == 3){
-                                showToast("操作失败，请联系管理员");
-                            }
-                        }catch (Exception e){
-                            e.printStackTrace();
-                        }
-                    }
-                }break;
-            }
-        }
-    };
-
+    @Override
+    public void initParms(Intent intent) {
+        houseData = intent.getStringExtra("data");
+        currentUnit = intent.getStringExtra("currentUnit");
+        userid = intent.getIntExtra("userid",-1);
+        token = intent.getStringExtra("token");
+    }
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_card);
-        houseData = getIntent().getStringExtra("data");
-        currentUnit = getIntent().getStringExtra("currentUnit");
-        userid = getIntent().getIntExtra("userid",-1);
-        token = getIntent().getStringExtra("token");
+    public int bindView() {
+        return R.layout.activity_card;
+    }
+
+    @Override
+    public void initView(View v) {
         mlv = (ListView) findViewById(R.id.mlv);
         title = (TextView) findViewById(R.id.title);
         title.setText("门禁卡");
@@ -158,9 +98,110 @@ public class CardActivity  extends Activity{
     }
 
     @Override
+    public void onMessage(Message msg) {
+        switch (msg.what){
+            case 0x01:{
+                hideLoadingDialog();
+                showData(handGetCardResult((String) msg.obj));
+            }break;
+            case 0x02:{
+                hideLoadingDialog();
+                String result = (String) msg.obj;
+                handDeleteResult(result);
+            }break;
+        }
+    }
+
+    private void getCardList(){
+        showLoading("正在获取数据....");
+        String url = "http://www.lockaxial.com/app/rfid/getCardAccess?roomid="+roomid;
+        asyncHttp(url,token,new AsyncCallBack(){
+            @Override
+            public void onResult(String result) {
+                Message message = Message.obtain();
+                message.what = 0x01;
+                message.obj = result;
+                mHandler.sendMessage(message);
+            }
+        });
+    }
+
+    private void deleteCard(int uid,int rid,String cardno,int cid){
+        showLoading("正在删除数据....");
+        String url = "http://www.lockaxial.com/app/rfid/deleteCardAccess?communityId="+cid;
+        url = url+"&cardnumber="+cardno;
+        url = url+"&userid="+uid;
+        url = url+"&roomid="+rid;
+        asyncHttp(url, token, new AsyncCallBack() {
+            @Override
+            public void onResult(String result) {
+                Message message = Message.obtain();
+                message.what = 0x02;
+                message.obj = result;
+                mHandler.sendMessage(message);
+            }
+        });
+    }
+
+    private void handDeleteResult(String result){
+        if(result!=null &&result.length()>0){
+            try{
+                JSONObject j = new JSONObject(result);
+                int code = j.has("code")?j.getInt("code"):-1;
+                if(code == 0){
+                    showToast("操作成功");
+                    getCardList();
+                }else if(code == 1){
+                    showToast("操作失败，您不是业主");
+                }else if(code == 2){
+                    showToast("操作失败，请联系管理员");
+                }else if(code == 3){
+                    showToast("操作失败，请联系管理员");
+                }else{
+                    if(!isNetWork()){
+                        showToast("请检查网络");
+                    }
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }else{
+            showToast("请检查网络");
+        }
+    }
+
+    private List<CardBean> handGetCardResult(String result){
+        if(result!=null && result.length()>0){
+            try{
+                JSONObject j = new JSONObject(result);
+                int code = j.has("code")?j.getInt("code"):-1;
+                if(code == 0){
+                    JSONArray array = j.has("data")?j.getJSONArray("data"):null;
+                    if(array!=null && array.length()>0){
+                        List<CardBean> data = new ArrayList<>();
+                        for(int i=0;i<array.length();i++){
+                            String cardName = array.getJSONObject(i).getString("cardname");
+                            String cardNumber = array.getJSONObject(i).getString("cardnumber");
+                            String createDate = array.getJSONObject(i).getString("credate");
+                            data.add(new CardBean(cardName, cardNumber, createDate));
+                        }
+                        return data;
+                    }
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        else{
+            showToast("请检查网络");
+        }
+        return null;
+    }
+
+    @Override
     protected void onStart() {
         super.onStart();
-        new getCardThread().start();
+        getCardList();
     }
 
     private void showData(List<CardBean> data){
@@ -177,7 +218,7 @@ public class CardActivity  extends Activity{
                         @Override
                         public void onClick(View view) {
                             ((SwipeMenuLayout) viewHolder.getConvertView()).quickClose();
-                            new deteleCardThread(userid,roomid,cardBean.cardNumber,communityId).start();
+                            deleteCard(userid,roomid,cardBean.cardNumber,communityId);
                         }
                     });
                 }
@@ -188,27 +229,21 @@ public class CardActivity  extends Activity{
         }
     }
 
-    private AlertDialog buildAlert(String[] data){
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setItems(data, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                try {
-                    house_name.setText(roomJsonArray.getJSONObject(i).getString("unitName"));
-                    roomid = roomJsonArray.getJSONObject(i).getInt("rid");
-                    communityId = roomJsonArray.getJSONObject(i).getInt("communityId");
-                    new getCardThread().start();
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-        });
-        return builder.create();
-    }
-
     public void selectHouse(View v){
         if(roomArray!=null && roomArray.length>0){
-            buildAlert(roomArray).show();
+            buildAlert(roomArray,new DialogInterface.OnClickListener(){
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    try {
+                        house_name.setText(roomJsonArray.getJSONObject(i).getString("unitName"));
+                        roomid = roomJsonArray.getJSONObject(i).getInt("rid");
+                        communityId = roomJsonArray.getJSONObject(i).getInt("communityId");
+                        getCardList();
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+            });
         }
     }
 
@@ -223,93 +258,5 @@ public class CardActivity  extends Activity{
         in.putExtra("userid",userid);
         in.putExtra("token",token);
         startActivity(in);
-    }
-
-    private void showToast(final String msg){
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(CardActivity.this,msg,Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-    private void showL(String msg){
-        Log.i("xiao_",msg);
-    }
-
-    private void hideLoading(){
-        if(dialog!=null && dialog.isShowing()){
-            dialog.dismiss();
-            dialog = null;
-        }
-    }
-
-    public Dialog showLoading(Context context, String msg) {
-        Dialog dialog = null;
-        dialog = new Dialog(context, R.style.image_dialog);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        View main = View.inflate(context, R.layout.dialog_main, null);
-        dialog.setContentView(main);
-        TextView tv = (TextView) main.findViewById(R.id.msg);
-        tv.setText(msg);
-        dialog.setCancelable(false);
-        return dialog;
-    }
-
-    class getCardThread extends Thread{
-        @Override
-        public void run() {
-            super.run();
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    dialog = showLoading(CardActivity.this,"正在获取数据...");
-                    dialog.show();
-                }
-            });
-            if(roomid!=-1){
-                String url = "http://www.lockaxial.com/app/rfid/getCardAccess?roomid="+roomid;
-                String result = HttpApi.getInstance().loadHttpforGet(url,token);
-                Message message = Message.obtain();
-                message.what = 0x01;
-                message.obj = result;
-                mHandler.sendMessage(message);
-            }else{
-                mHandler.sendEmptyMessage(0x02);
-            }
-        }
-    }
-
-    class deteleCardThread extends Thread{
-        private int uid;
-        private int rid;
-        private String cardno;
-        private int cid;
-        public deteleCardThread(int uid,int rid,String cardno,int cid){
-            this.uid = uid;
-            this.rid = rid;
-            this.cardno = cardno;
-            this.cid = cid;
-        }
-        @Override
-        public void run() {
-            super.run();
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    dialog = showLoading(CardActivity.this,"正在删除...");
-                    dialog.show();
-                }
-            });
-            String url = "http://www.lockaxial.com/app/rfid/deleteCardAccess?communityId="+cid;
-            url = url+"&cardnumber="+cardno;
-            url = url+"&userid="+uid;
-            url = url+"&roomid="+rid;
-            String result = HttpApi.getInstance().loadHttpforGet(url,token);
-            Message message = Message.obtain();
-            message.what = 0x03;
-            message.obj = result;
-            mHandler.sendMessage(message);
-        }
     }
 }
