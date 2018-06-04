@@ -29,9 +29,14 @@ import com.mcxtzhang.swipemenulib.SwipeMenuLayout;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
 /**
  * Created by Administrator on 2018/5/15.
@@ -106,8 +111,7 @@ public class CardActivity  extends BaseActivity{
             }break;
             case 0x02:{
                 hideLoadingDialog();
-                String result = (String) msg.obj;
-                handDeleteResult(result);
+                handDeleteResult((String) msg.obj);
             }break;
         }
     }
@@ -166,7 +170,11 @@ public class CardActivity  extends BaseActivity{
                 e.printStackTrace();
             }
         }else{
-            showToast("请检查网络");
+            if(isNetWork()){
+                showToast("请求超时，操作失败");
+            }else{
+                showToast("请检查网络");
+            }
         }
     }
 
@@ -193,7 +201,11 @@ public class CardActivity  extends BaseActivity{
             }
         }
         else{
-            showToast("请检查网络");
+            if(isNetWork()){
+                showToast("请求超时，数据获取失败");
+            }else{
+                showToast("请检查网络");
+            }
         }
         return null;
     }

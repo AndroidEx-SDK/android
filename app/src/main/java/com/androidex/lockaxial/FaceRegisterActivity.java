@@ -66,34 +66,6 @@ public class FaceRegisterActivity extends BaseActivity implements SurfaceHolder.
     private AFR_FSDKFace mAFR_FSDKFace;
     private static final String TAG = "xiao_";
     private FaceDB faceDB;
-    private Handler mHandler = new Handler(){
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what){
-                case 0x06:{
-                    String result = (String) msg.obj;
-                    try{
-                        JSONObject j = new JSONObject(result);
-                        String imu = j.getString("imageUrl");
-                        String dau = j.getString("dataUrl");
-                        if(imu!=null && imu.length()>0
-                                && dau!=null && dau.length()>0){
-                            new submitFaceThread(userid,roomid,blockid,imu,dau,faceName,communityId).start();
-                        }
-                    }catch (Exception e){
-                        e.printStackTrace();
-                    }
-                }break;
-                case 0x07:{
-                    hideLoading();
-                    String result = (String) msg.obj;
-                    showL("增加人脸数据结果："+result);
-                    FaceRegisterActivity.this.finish();
-                }break;
-            }
-        }
-    };
-
 
     private String houseData;
     private String currentUnit;
@@ -168,22 +140,18 @@ public class FaceRegisterActivity extends BaseActivity implements SurfaceHolder.
             case 0x06:{
                 hideLoadingDialog();
                 if(isNetWork()){
-                    showToast("文件提交失败,请重试");
+                    showToast("数据提交失败,请重试");
                 }else{
-                    showToast("文件提交失败,请检查网络");
+                    showToast("数据提交失败,请检查网络");
                 }
                 finish();
             }break;
             case 0x07:{
-                String result = (String) msg.obj;
-                try{
-                    JSONObject j = new JSONObject(result);
-                    String uploadImageUrl = j.getString("uploadImageUrl");
-                    String uploadDataUrl = j.getString("uploadDataUrl");
-                    new submitFaceThread(userid,roomid,blockid,uploadImageUrl,uploadDataUrl,faceName,communityId).start();
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
+                handUploadResult((String) msg.obj);
+            }break;
+            case 0x08:{
+                hideLoadingDialog();
+                handSubmitFaceResult((String) msg.obj);
             }break;
 
         }
@@ -282,39 +250,60 @@ public class FaceRegisterActivity extends BaseActivity implements SurfaceHolder.
         }).start();
     }
 
-    class submitFaceThread extends Thread{
-        private int uid;
-        private int rid;
-        private int bid;
-        private String iu;
-        private String du;
-        private String fn;
-        private int cid;
-        public submitFaceThread(int uid,int rid,int bid,String iu,String du,String fn,int cid){
-            this.uid = uid;
-            this.rid = rid;
-            this.bid = bid;
-            this.iu = iu;
-            this.du = du;
-            this.fn = fn;
-            this.cid = cid;
+    private void handUploadResult(String result){
+        try{
+            JSONObject j = new JSONObject(result);
+            String uploadImageUrl = j.getString("uploadImageUrl");
+            String uploadDataUrl = j.getString("uploadDataUrl");
+            submitFace(userid,roomid,blockid,uploadImageUrl,uploadDataUrl,faceName,communityId);
+        }catch (Exception e){
+            e.printStackTrace();
         }
+    }
 
-        @Override
-        public void run() {
-            String url = "http://www.lockaxial.com/app/rfid/appPostFace?userid="+uid;
-            url = url+"&roomid="+rid;
-            url = url+"&blockid="+bid;
-            url = url+"&imageUrl="+iu;
-            url = url+"&dataUrl="+du;
-            url = url+"&faceName="+fn;
-            url = url+"&communityId="+cid;
-            String result = HttpApi.getInstance().loadHttpforGet(url,token);
-            Message message = Message.obtain();
-            message.what = 0x07;
-            message.obj = result;
-            mHandler.sendMessage(message);
+    private void submitFace(int uid,int rid,int bid,String iu,String du,String fn,int cid){
+        String url = "http://www.lockaxial.com/app/rfid/appPostFace?userid="+uid;
+        url = url+"&roomid="+rid;
+        url = url+"&blockid="+bid;
+        url = url+"&imageUrl="+iu;
+        url = url+"&dataUrl="+du;
+        url = url+"&faceName="+fn;
+        url = url+"&communityId="+cid;
+        asyncHttp(url, token, new AsyncCallBack() {
+            @Override
+            public void onResult(String result) {
+                Message message = Message.obtain();
+                message.what = 0x08;
+                message.obj = result;
+                mHandler.sendMessage(message);
+            }
+        });
+    }
+
+    private void handSubmitFaceResult(String result){
+        if(result!=null && result.length()>0){
+            try{
+                JSONObject j = new JSONObject(result);
+                int code = j.has("code")?j.getInt("code"):-1;
+                if(code == 0){
+                    showToast("提交成功");
+                    EventBus.getDefault().post(new RegisterEvent("Exit"));
+                }else if(code == 1){
+                    showToast("提交失败，您没有权限");
+                }else if(code == 2){
+                    showToast("提交失败，未找到指定门禁设备");
+                }else if(code == 3){
+                    showToast("提交失败，请联系管理员");
+                }else if(code == 4){
+                    showToast("提交失败，姓名重复");
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }else{
+            showToast("提交失败，请检查网络");
         }
+        this.finish();
     }
 
     class faceThread extends Thread{

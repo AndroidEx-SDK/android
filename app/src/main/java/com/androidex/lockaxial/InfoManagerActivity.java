@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Message;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.View;
 
 import com.androidex.R;
@@ -34,7 +35,12 @@ public class InfoManagerActivity extends BaseActivity {
 
     @Override
     public void initView(View v) {
-
+        asyncHttp("http://www.lockaxial.com/app/rfid/checkCardNo", token, new AsyncCallBack() {
+            @Override
+            public void onResult(String result) {
+                showL(result);
+            }
+        });
     }
 
     @Override

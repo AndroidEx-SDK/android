@@ -31,10 +31,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.Response;
 
 /**
  * Created by Administrator on 2018/5/19.
@@ -57,9 +59,22 @@ public class HttpApi {
         try {
             Log.i("xiao_","发出请求："+u);
             Call call = client.newCall(BuildRequest(null, u, t));
-            return call.execute().body().string();
+            Response response = call.execute();
+            if(response.isSuccessful()){
+                return response.body().string();
+            }else{
+                return null;
+            }
         }catch(Exception e){
             return null;
+        }
+    }
+
+    public void loadHttpforGet(String u,String t,Callback callback){
+        try {
+            client.newCall(BuildRequest(null, u, t)).enqueue(callback);
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 

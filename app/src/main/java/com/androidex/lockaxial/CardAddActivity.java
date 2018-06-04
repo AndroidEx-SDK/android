@@ -229,7 +229,11 @@ public class CardAddActivity extends BaseActivity {
                 e.printStackTrace();
             }
         }else{
-            showToast("请检查网络");
+            if(isNetWork()){
+                showToast("请求超时，操作失败");
+            }else{
+                showToast("请检查网络");
+            }
         }
     }
 

@@ -56,7 +56,7 @@ public class FaceActivity extends BaseActivity {
                         @Override
                         public void onClick(View view) {
                             ((SwipeMenuLayout) viewHolder.getConvertView()).quickClose();
-                            deleteFace(userid,faceBean.imageUrl,faceBean.dataUrl,faceBean.faceName,roomid);
+                            deleteFace(userid,faceBean.id,roomid);
                         }
                     });
                 }
@@ -142,6 +142,7 @@ public class FaceActivity extends BaseActivity {
                     try {
                         house_name.setText(roomJsonArray.getJSONObject(i).getString("unitName"));
                         roomid = roomJsonArray.getJSONObject(i).getInt("rid");
+                        getFaceList();
                     }catch (Exception e){
                         e.printStackTrace();
                     }
@@ -187,33 +188,36 @@ public class FaceActivity extends BaseActivity {
                     if(array!=null && array.length()>0){
                         List<FaceBean> data = new ArrayList<>();
                         for(int i=0;i<array.length();i++){
+                            int id = array.getJSONObject(i).getInt("id");
                             String imageUrl = array.getJSONObject(i).getString("imageUrl");
                             String dataUrl = array.getJSONObject(i).getString("dataUrl");
                             String faceName = array.getJSONObject(i).getString("faceName");
                             String createDate = array.getJSONObject(i).getString("creDate");
-                            data.add(new FaceBean(imageUrl,dataUrl,faceName,createDate));
+                            data.add(new FaceBean(id,imageUrl,dataUrl,faceName,createDate));
                         }
                         return data;
                     }
                 }
             }catch (Exception e){
                 e.printStackTrace();
-                showToast("操作失败，请联系管理员");
+                showToast("数据获取失败，请联系管理员");
             }
         }
         else{
-            showToast("请检查网络");
+            if(isNetWork()){
+                showToast("请求超时，数据获取失败");
+            }else{
+                showToast("请检查网络");
+            }
         }
         return null;
     }
 
-    private void deleteFace(int uid,String imgUrl,String daUrl,String fname,int rid){
+    private void deleteFace(int uid,int fid,int rid){
         showLoading("正在删除数据...");
         String url = "http://www.lockaxial.com/app/rfid/deleteFaceData?userid="+uid;
         url = url+"&roomid="+rid;
-        url = url+"&imageUrl="+imgUrl;
-        url = url+"&dataUrl="+daUrl;
-        url = url+"&faceName="+fname;
+        url = url+"&faceid="+fid;
         asyncHttp(url, token, new AsyncCallBack() {
             @Override
             public void onResult(String result) {
@@ -245,7 +249,11 @@ public class FaceActivity extends BaseActivity {
                 e.printStackTrace();
             }
         }else{
-            showToast("请检查网络");
+            if(isNetWork()){
+                showToast("请求超时，操作失败");
+            }else{
+                showToast("请检查网络");
+            }
         }
     }
 }

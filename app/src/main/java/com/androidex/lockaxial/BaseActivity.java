@@ -25,9 +25,14 @@ import com.bumptech.glide.request.target.SimpleTarget;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
 /**
  * Created by Administrator on 2018/6/1.
@@ -123,20 +128,17 @@ public abstract class BaseActivity extends Activity {
     }
 
     public void asyncHttp(final String url,final String token,final AsyncCallBack callBack){
-        new Thread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        if(isNetWork()){
-                            String result = HttpApi.getInstance().loadHttpforGet(url,token);
-                            callBack.onResult(result);
-                        }else{
-                            callBack.onResult(null);
-                        }
+        HttpApi.getInstance().loadHttpforGet(url, token, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                callBack.onResult(null);
+            }
 
-                    }
-                }
-        ).start();
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                callBack.onResult(response.body().string());
+            }
+        });
     }
 
     public void buildAlert(String[] data,DialogInterface.OnClickListener onClickListener){
