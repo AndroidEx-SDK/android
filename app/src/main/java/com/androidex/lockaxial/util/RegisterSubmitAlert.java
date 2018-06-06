@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -26,6 +27,7 @@ import org.json.JSONObject;
 public class RegisterSubmitAlert extends Dialog {
     private TextView title;
     private EditText name;
+    private EditText phone;
     private Button cancel;
     private Button confirm;
     private Context context;
@@ -39,17 +41,19 @@ public class RegisterSubmitAlert extends Dialog {
     private int communityId;
     private String[] roomArray;
     private JSONArray roomJsonArray;
+    private OnSibmitCallBack callBack;
 
     public RegisterSubmitAlert(@NonNull Context context) {
         super(context);
         this.context = context;
     }
 
-    public RegisterSubmitAlert(@NonNull Context context, int themeResId,String houseData,String currentUnit) {
+    public RegisterSubmitAlert(@NonNull Context context, int themeResId,String houseData,String currentUnit,OnSibmitCallBack cb) {
         super(context, themeResId);
         this.context = context;
         this.houseData = houseData;
         this.currentUnit = currentUnit;
+        this.callBack = cb;
     }
 
     protected RegisterSubmitAlert(@NonNull Context context, boolean cancelable, @Nullable OnCancelListener cancelListener) {
@@ -62,8 +66,9 @@ public class RegisterSubmitAlert extends Dialog {
         super.onCreate(savedInstanceState);
         setCanceledOnTouchOutside(false);
         setContentView(R.layout.dialog_submit);
+        setCancelable(false);
         title = (TextView) findViewById(R.id.title);
-        title.setText("人脸别名");
+        title.setText("人脸信息");
         houseName = (TextView) findViewById(R.id.house_name);
         houseName.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -95,30 +100,40 @@ public class RegisterSubmitAlert extends Dialog {
         }
 
         name = (EditText) findViewById(R.id.name);
+        phone = (EditText) findViewById(R.id.phone);
         cancel = (Button) findViewById(R.id.cancel);
         confirm = (Button) findViewById(R.id.confirm);
         cancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Log.i("xiao_","点击取消");
+                if(callBack!=null){
+                    Log.i("xiao_","callBack！=null ,执行回调");
+                    callBack.onCancel();
+                }
+                Log.i("xiao_","结束Dialog");
                 RegisterSubmitAlert.this.dismiss();
-                org.greenrobot.eventbus.EventBus.getDefault().post(new SubmitEvent(0x01));
             }
         });
 
         confirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(name.getText().toString().trim().length()>0){
-                    SubmitEvent event = new SubmitEvent(0x02);
-                    event.msg = name.getText().toString().trim();
-                    event.rid= roomid;
-                    event.bid = blockId;
-                    event.cid = communityId;
-                    org.greenrobot.eventbus.EventBus.getDefault().post(event);
-                    RegisterSubmitAlert.this.dismiss();
-                }else{
+                String strName = name.getText().toString().trim();
+                String strPhone = phone.getText().toString().trim();
+                if(strName == null || strName.length() <= 0){
                     Toast.makeText(context,"请输入姓名",Toast.LENGTH_SHORT).show();
+                    return;
                 }
+
+                if(strPhone == null || strPhone.length() != 11){
+                    Toast.makeText(context,"请输入正确的电话号码",Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if(callBack!=null){
+                    callBack.onConfirm(strName,strPhone,roomid,blockId,communityId);
+                }
+                RegisterSubmitAlert.this.dismiss();
             }
         });
     }
@@ -145,5 +160,10 @@ public class RegisterSubmitAlert extends Dialog {
             }
         });
         return builder.create();
+    }
+
+    public interface OnSibmitCallBack{
+        public void onCancel();
+        public void onConfirm(String faceName,String strPhone,int roomid,int blockId,int communityId);
     }
 }

@@ -247,6 +247,7 @@ public class CardActivity  extends BaseActivity{
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
                     try {
+                        currentUnit = roomJsonArray.getJSONObject(i).toString();
                         house_name.setText(roomJsonArray.getJSONObject(i).getString("unitName"));
                         roomid = roomJsonArray.getJSONObject(i).getInt("rid");
                         communityId = roomJsonArray.getJSONObject(i).getInt("communityId");

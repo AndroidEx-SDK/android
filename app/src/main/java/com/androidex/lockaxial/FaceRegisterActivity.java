@@ -41,6 +41,7 @@ import com.arcsoft.facerecognition.AFR_FSDKError;
 import com.arcsoft.facerecognition.AFR_FSDKFace;
 import com.arcsoft.facerecognition.AFR_FSDKVersion;
 import com.guo.android_extend.image.ImageConverter;
+import com.reactnativenavigation.events.Event;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -56,7 +57,7 @@ import java.util.List;
  * Created by Administrator on 2018/5/30.
  */
 
-public class FaceRegisterActivity extends BaseActivity implements SurfaceHolder.Callback{
+public class FaceRegisterActivity extends BaseActivity implements SurfaceHolder.Callback,RegisterSubmitAlert.OnSibmitCallBack{
     private SurfaceView mSurfaceView;
     private SurfaceHolder mSurfaceHolder;
     private String path;
@@ -71,6 +72,7 @@ public class FaceRegisterActivity extends BaseActivity implements SurfaceHolder.
     private String currentUnit;
     private String token;
     private int userid;
+    private String strPhone = "";
 
     private int roomid = -1;
     private int blockid = -1;
@@ -101,7 +103,6 @@ public class FaceRegisterActivity extends BaseActivity implements SurfaceHolder.
 
     @Override
     public void initView(View v) {
-        EventBus.getDefault().register(this);
         faceDB = new FaceDB(getFilesDir().getPath()+"/face");
         mSurfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         src.set(0, 0, mBitmap.getWidth(), mBitmap.getHeight());
@@ -126,7 +127,7 @@ public class FaceRegisterActivity extends BaseActivity implements SurfaceHolder.
             }break;
             case 0x03:{
                 showToast("检查到人脸数据");
-                RegisterSubmitAlert registerSubmitAlert = new RegisterSubmitAlert(FaceRegisterActivity.this,R.style.Dialog,houseData,currentUnit);
+                RegisterSubmitAlert registerSubmitAlert = new RegisterSubmitAlert(FaceRegisterActivity.this,R.style.Dialog,houseData,currentUnit,this);
                 registerSubmitAlert.show();
             }break;
             case 0x04:{
@@ -157,23 +158,27 @@ public class FaceRegisterActivity extends BaseActivity implements SurfaceHolder.
         }
     }
 
-    @Subscribe
-    public void onEventMessage(SubmitEvent event){
-        if(event.what == 0x01){
-            this.finish();
-        }else if(event.what == 0x02){
-            faceName = event.msg;
-            roomid = event.rid;
-            blockid = event.bid;
-            communityId = event.cid;
-            if(mAFR_FSDKFace!=null){
-                File f = faceDB.saveData(mAFR_FSDKFace,faceName);
-                if(f!=null && f.exists()){
-                    uploadFile(path,f.toString());
-                }
+    @Override
+    public void onCancel() {
+        Log.i("xiao_","Activity收到回调");
+        this.finish();
+    }
+
+    @Override
+    public void onConfirm(String fn,String sp,int rid, int bid, int cid) {
+        this.faceName = fn;
+        this.roomid = rid;
+        this.blockid = bid;
+        this.communityId = cid;
+        this.strPhone = sp;
+        if(mAFR_FSDKFace!=null){
+            File f = faceDB.saveData(mAFR_FSDKFace,faceName);
+            if(f!=null && f.exists()){
+                uploadFile(path,f.toString());
             }
         }
     }
+
 
 
     private boolean getPath(Intent intent){
@@ -255,13 +260,13 @@ public class FaceRegisterActivity extends BaseActivity implements SurfaceHolder.
             JSONObject j = new JSONObject(result);
             String uploadImageUrl = j.getString("uploadImageUrl");
             String uploadDataUrl = j.getString("uploadDataUrl");
-            submitFace(userid,roomid,blockid,uploadImageUrl,uploadDataUrl,faceName,communityId);
+            submitFace(userid,roomid,blockid,uploadImageUrl,uploadDataUrl,faceName,strPhone,communityId);
         }catch (Exception e){
             e.printStackTrace();
         }
     }
 
-    private void submitFace(int uid,int rid,int bid,String iu,String du,String fn,int cid){
+    private void submitFace(int uid,int rid,int bid,String iu,String du,String fn,String sp,int cid){
         String url = "http://www.lockaxial.com/app/rfid/appPostFace?userid="+uid;
         url = url+"&roomid="+rid;
         url = url+"&blockid="+bid;
@@ -269,6 +274,7 @@ public class FaceRegisterActivity extends BaseActivity implements SurfaceHolder.
         url = url+"&dataUrl="+du;
         url = url+"&faceName="+fn;
         url = url+"&communityId="+cid;
+        url = url+"&phone="+sp;
         asyncHttp(url, token, new AsyncCallBack() {
             @Override
             public void onResult(String result) {
@@ -305,7 +311,6 @@ public class FaceRegisterActivity extends BaseActivity implements SurfaceHolder.
         }
         this.finish();
     }
-
     class faceThread extends Thread{
         @Override
         public void run() {

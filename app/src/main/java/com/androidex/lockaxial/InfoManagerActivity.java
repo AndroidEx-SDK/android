@@ -35,12 +35,7 @@ public class InfoManagerActivity extends BaseActivity {
 
     @Override
     public void initView(View v) {
-        asyncHttp("http://www.lockaxial.com/app/rfid/checkCardNo", token, new AsyncCallBack() {
-            @Override
-            public void onResult(String result) {
-                showL(result);
-            }
-        });
+
     }
 
     @Override

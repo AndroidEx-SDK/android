@@ -140,6 +140,7 @@ public class FaceActivity extends BaseActivity {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
                     try {
+                        currentUnit = roomJsonArray.getJSONObject(i).toString();
                         house_name.setText(roomJsonArray.getJSONObject(i).getString("unitName"));
                         roomid = roomJsonArray.getJSONObject(i).getInt("rid");
                         getFaceList();
@@ -233,21 +234,23 @@ public class FaceActivity extends BaseActivity {
         if(result!=null && result.length()>0){
             try{
                 JSONObject j = new JSONObject(result);
-                int code = j.getInt("code");
+                int code = j.has("code")?j.getInt("code"):-1;
                 if(code == 0){
                     showToast("操作成功");
-                    getFaceList();
                 }else if(code == 1){
                     showToast("操作失败，您不是业主");
                 }else if(code == 2){
                     showToast("操作失败，请联系管理员");
                 }else if(code == 3){
                     showToast("操作失败，请联系管理员");
+                }else{
+                    showToast("操作失败");
                 }
             }catch (Exception e){
                 showToast("操作失败，请联系管理员");
                 e.printStackTrace();
             }
+            getFaceList();
         }else{
             if(isNetWork()){
                 showToast("请求超时，操作失败");

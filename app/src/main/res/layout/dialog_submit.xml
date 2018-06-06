@@ -6,10 +6,10 @@
     android:layout_height="match_parent">
 
     <LinearLayout
-        android:background="@drawable/dialog_main_iv"
+        android:background="@drawable/submit_dialog_bg"
         android:orientation="vertical"
         android:layout_width="300dp"
-        android:layout_height="200dp">
+        android:layout_height="250dp">
         <TextView
             android:id="@+id/title"
             android:gravity="center"
@@ -24,8 +24,23 @@
         <EditText
             android:id="@+id/name"
             android:paddingLeft="20dp"
+            android:textSize="16sp"
             android:background="#ffffffff"
             android:hint="请输入姓名"
+            android:layout_width="match_parent"
+            android:layout_height="50dp" />
+        <View
+            android:background="#999999"
+            android:layout_width="match_parent"
+            android:layout_height="1px"></View>
+
+        <EditText
+            android:id="@+id/phone"
+            android:inputType="number"
+            android:textSize="16sp"
+            android:paddingLeft="20dp"
+            android:background="#ffffffff"
+            android:hint="请输入电话号码"
             android:layout_width="match_parent"
             android:layout_height="50dp" />
         <View
@@ -39,17 +54,19 @@
             <TextView
                 android:id="@+id/house_name"
                 android:paddingLeft="20dp"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:textColor="#999999"
+                android:maxLines="1"
+                android:ellipsize="end"
                 android:gravity="center_vertical"
-                android:layout_marginRight="20dp"
+                android:layout_marginRight="28dp"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
             <ImageView
                 android:src="@drawable/ic_details"
                 android:layout_centerVertical="true"
                 android:layout_alignParentRight="true"
-                android:layout_marginRight="10dp"
+                android:layout_marginRight="20dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
         </RelativeLayout>
@@ -64,6 +81,7 @@
                 android:id="@+id/cancel"
                 android:layout_width="0dp"
                 android:layout_weight="1"
+                android:layout_marginLeft="20dp"
                 android:text="取消"
                 android:background="#ffffffff"
                 android:layout_height="match_parent" />
@@ -78,6 +96,7 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:text="确认"
+                android:layout_marginRight="20dp"
                 android:background="#ffffffff"
                 android:layout_height="match_parent" />
         </LinearLayout>
