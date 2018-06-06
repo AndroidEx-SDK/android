@@ -422,7 +422,7 @@ public class MainService extends Service implements WifiEvent {
                 isTokenAvailable = true;
             }
         }
-        return isTokenAvailable;
+        return false;
     }
 
     private void startGetToken() {
