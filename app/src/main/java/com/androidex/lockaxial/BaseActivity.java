@@ -23,8 +23,6 @@ import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 
-import org.greenrobot.eventbus.EventBus;
-
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -98,11 +96,12 @@ public abstract class BaseActivity extends Activity {
         return HttpApi.isNetworkAvailable(this);
     }
 
-    protected void loadUrlImage(String url,final ImageView image){
+    protected void loadUrlImage(final String url,final ImageView image){
         Glide.with(this).load(url).placeholder(R.drawable.ic_def_bg).error(R.drawable.ic_def_bg).into(new SimpleTarget<GlideDrawable>() {
             @Override
             public void onResourceReady(GlideDrawable resource, GlideAnimation<? super GlideDrawable> glideAnimation) {
                 image.setImageDrawable(resource);
+                showL("º”‘ÿµƒµÿ÷∑£∫"+url);
             }
 
             @Override

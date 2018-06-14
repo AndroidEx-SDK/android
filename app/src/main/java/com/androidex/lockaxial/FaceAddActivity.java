@@ -2,31 +2,28 @@ package com.androidex.lockaxial;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.RectF;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.SurfaceView;
 import android.view.View;
 
 import com.androidex.R;
-import com.androidex.lockaxial.util.CameraHelper;
+import com.androidex.lockaxial.util.CameraHelperDex;
 import com.androidex.lockaxial.util.HttpApi;
 import com.androidex.lockaxial.util.RegisterEvent;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.ArrayList;
 
 /**
  * Created by Administrator on 2018/5/30.
  */
 
-public class FaceAddActivity extends Activity implements CameraHelper.CallBack {
+public class FaceAddActivity extends Activity implements CameraHelperDex.CallBack {
     private SurfaceView mSurfaceView;
-    private CameraHelper cameraHelper;
+    private CameraHelperDex cameraHelper;
 
     private String houseData;
     private String currentUnit;
@@ -43,7 +40,7 @@ public class FaceAddActivity extends Activity implements CameraHelper.CallBack {
         userid = getIntent().getIntExtra("userid",-1);
         token = getIntent().getStringExtra("token");
         mSurfaceView = (SurfaceView) findViewById(R.id.surfaceView);
-        cameraHelper = new CameraHelper(this,mSurfaceView);
+        cameraHelper = new CameraHelperDex(this,mSurfaceView);
         cameraHelper.addCallBack(this);
     }
 
@@ -68,23 +65,6 @@ public class FaceAddActivity extends Activity implements CameraHelper.CallBack {
         cameraHelper.exchangeCamera();
     }
 
-    @Override
-    public void onPreviewFrame(@org.jetbrains.annotations.Nullable byte[] data) {
-
-    }
-
-    @Override
-    public void onTakePic(@org.jetbrains.annotations.Nullable byte[] data) {
-        File file = HttpApi.savePictureFile(this,data,cameraHelper.getCameradirection());
-        if(file!=null){
-            startRegisterAcivity(file);
-        }
-    }
-
-    @Override
-    public void onFaceDetect(@NotNull ArrayList<RectF> faces) {
-
-    }
 
     private void startRegisterAcivity(File file){
         Intent i = new Intent(this,FaceRegisterActivity.class);
@@ -94,5 +74,18 @@ public class FaceAddActivity extends Activity implements CameraHelper.CallBack {
         i.putExtra("userid",userid);
         i.putExtra("token",token);
         startActivity(i);
+    }
+
+    @Override
+    public void onPreviewFrame(byte[] bytes) {
+
+    }
+
+    @Override
+    public void onTakePic(byte[] bytes) {
+        File file = HttpApi.savePictureFile(this,bytes,cameraHelper.getCameradirection());
+        if(file!=null){
+            startRegisterAcivity(file);
+        }
     }
 }

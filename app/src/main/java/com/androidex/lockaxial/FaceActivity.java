@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.androidex.R;
 import com.androidex.lockaxial.bean.FaceBean;
 import com.androidex.lockaxial.util.HttpApi;
+import com.bumptech.glide.Glide;
 import com.mcxtzhang.commonadapter.lvgv.CommonAdapter;
 import com.mcxtzhang.commonadapter.lvgv.ViewHolder;
 import com.mcxtzhang.swipemenulib.SwipeMenuLayout;
@@ -51,7 +52,14 @@ public class FaceActivity extends BaseActivity {
                     viewHolder.setText(R.id.name, faceBean.faceName);
                     viewHolder.setText(R.id.createDate, UTCStringtODefaultString(faceBean.createDate));
                     ImageView imageView = viewHolder.getView(R.id.image);
-                    loadUrlImage("http://www.lockaxial.com/"+faceBean.imageUrl,imageView);
+                    String loadUrl = "http://www.lockaxial.com/"+faceBean.imageUrl;
+                    showL("姓名："+faceBean.faceName+",地址："+loadUrl);
+                    Glide.with(FaceActivity.this)
+                            .load(loadUrl)
+                            .placeholder(R.drawable.ic_def_bg)
+                            .dontAnimate()
+                            .error(R.drawable.ic_def_bg)
+                            .into(imageView);
                     viewHolder.setOnClickListener(R.id.btnDelete, new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
@@ -118,6 +126,7 @@ public class FaceActivity extends BaseActivity {
     public void onMessage(Message msg) {
         switch (msg.what){
             case 0x01:{
+                showL("收到0x01");
                 hideLoadingDialog();
                 showData(handGetCardResult((String) msg.obj));
             }break;
@@ -166,6 +175,7 @@ public class FaceActivity extends BaseActivity {
     }
 
     private void getFaceList(){
+        showL("正在获取数据....");
         showLoading("正在获取数据...");
         String url = "http://www.lockaxial.com/app/rfid/getFaceDataByRoomid?roomid="+roomid;
         asyncHttp(url, token, new AsyncCallBack() {

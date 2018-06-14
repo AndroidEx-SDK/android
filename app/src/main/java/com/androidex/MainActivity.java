@@ -38,11 +38,6 @@ public class MainActivity extends SplashActivity {
         super.onCreate(savedInstanceState);
         initHandler();
         startMainService();
-//        if (Build.VERSION.SDK_INT >= 23) {
-//            initPermissions();
-//        } else {
-//            Log.e(TAG, "无需授权");
-//        }
     }
 
     /**
