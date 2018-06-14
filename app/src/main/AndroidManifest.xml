@@ -60,7 +60,6 @@
     <permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <uses-permission android:name="android.permission.NFC" />
-    <uses-feature android:name="android.hardware.nfc" android:required="true" />
 
     <application
         android:name="com.androidex.lockaxial.MainApplication"
@@ -117,21 +116,7 @@
         <activity android:name=".lockaxial.InfoManagerActivity"></activity>
         <activity android:name=".lockaxial.CardActivity"></activity>
         <activity android:name=".lockaxial.FaceActivity"></activity>
-        <activity android:name=".lockaxial.CardAddActivity">
-            <intent-filter>
-                <action android:name="android.nfc.action.TECH_DISCOVERED" />
-            </intent-filter>
-            <meta-data android:name="android.nfc.action.TECH_DISCOVERED"
-                android:resource="@xml/nfc_tech_filter" />
-            <intent-filter>
-                <action android:name = "android.nfc.action.NDEF_DISCOVERED" />
-                <data android:mimeType = "text/plain" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.nfc.action.TAG_DISCOVERED"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-            </intent-filter>
-        </activity>
+        <activity android:name=".lockaxial.CardAddActivity"></activity>
         <activity android:name=".lockaxial.FaceAddActivity"></activity>
         <activity android:name=".lockaxial.FaceRegisterActivity"></activity>
     </application>

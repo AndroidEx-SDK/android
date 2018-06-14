@@ -1,19 +1,26 @@
 package com.androidex.lockaxial;
+
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
+import android.os.Bundle;
 import android.os.Message;
-import android.provider.Settings;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.androidex.R;
+import com.androidex.lockaxial.util.HttpApi;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -27,7 +34,7 @@ public class CardAddActivity extends BaseActivity {
     private NfcAdapter mNfcAdapter;
     private PendingIntent pi;
     private EditText name;
-    private EditText number;
+    private TextView number;
     private TextView room;
     private String roomData;
     private String currentUnit;
@@ -116,7 +123,7 @@ public class CardAddActivity extends BaseActivity {
         title = (TextView) findViewById(R.id.title);
         title.setText("录卡");
         name = (EditText) findViewById(R.id.name);
-        number = (EditText) findViewById(R.id.number);
+        number = (TextView) findViewById(R.id.number);
         room = (TextView) findViewById(R.id.room);
         room.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -168,7 +175,6 @@ public class CardAddActivity extends BaseActivity {
             }
         }
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
-        checkNFC();
         pi = PendingIntent.getActivity(this, 0, new Intent(this, getClass())
                 .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
     }
@@ -176,49 +182,7 @@ public class CardAddActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if(mNfcAdapter != null){
-            mNfcAdapter.enableForegroundDispatch(this, pi, null, null);
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if(mNfcAdapter != null){
-            mNfcAdapter.disableForegroundDispatch(this);
-        }
-    }
-
-    private void checkNFC(){
-        if(mNfcAdapter!=null){
-            if (!mNfcAdapter.isEnabled()) {
-                showOpenNfcDialg();
-            }
-        }else{
-            showToast("您手机不支持NFC功能,请手动输入门禁卡号");
-        }
-    }
-
-    private void showOpenNfcDialg(){
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("打开NFC")//设置对话框的标题
-                .setMessage("检测到手机未打开NFC功能，是否前往打开")//设置对话框的内容
-                //设置对话框的按钮
-                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                })
-                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Intent setNfc = new Intent(Settings.ACTION_NFC_SETTINGS);
-                        CardAddActivity.this.startActivity(setNfc);
-                        dialog.dismiss();
-                    }
-                }).create();
-        dialog.show();
+        mNfcAdapter.enableForegroundDispatch(this, pi, null, null);
     }
 
     @Override
@@ -228,7 +192,6 @@ public class CardAddActivity extends BaseActivity {
             String cardid = processIntent(intent);
             if(cardid!=null && cardid.length()>0){
                 number.setText(cardid);
-                Log.i("xiao_","卡号："+cardid);
             }
         }
     }
