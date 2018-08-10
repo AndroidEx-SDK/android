@@ -101,7 +101,6 @@ public abstract class BaseActivity extends Activity {
             @Override
             public void onResourceReady(GlideDrawable resource, GlideAnimation<? super GlideDrawable> glideAnimation) {
                 image.setImageDrawable(resource);
-                showL("º”‘ÿµƒµÿ÷∑£∫"+url);
             }
 
             @Override

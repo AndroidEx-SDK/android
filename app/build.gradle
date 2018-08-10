@@ -82,12 +82,16 @@ def enableSeparateBuildPerCPUArchitecture = false
  */
 def enableProguardInReleaseBuilds = false
 
+def buildVersionName(){
+    return "1.2.0"
+}
+
 android {
 
     android.applicationVariants.all {
         variant ->
             variant.outputs.each {
-                output -> output.outputFile = new File(output.outputFile.parent, "lockaxial-1.1.7.apk");
+                output -> output.outputFile = new File(output.outputFile.parent, "lockaxial-${buildVersionName()}.apk");
             }
     }
 
@@ -98,8 +102,8 @@ android {
         applicationId "com.androidex"
         minSdkVersion 16
         targetSdkVersion 22
-        versionCode 7
-        versionName "1.1.7"
+        versionCode 8
+        versionName "${buildVersionName()}"
         multiDexEnabled true
         ndk {
             abiFilters "armeabi-v7a", "x86"

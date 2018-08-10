@@ -1,7 +1,10 @@
 package com.androidex.lockaxial.service;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.Service;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
@@ -12,6 +15,7 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
+import android.view.WindowManager;
 
 import com.androidex.R;
 import com.androidex.lockaxial.InboundActivity;
@@ -204,14 +208,7 @@ public class MainService extends Service implements WifiEvent {
                 } else if (msg.what == MSG_OPEN_DOOR) {
                     openDoor();
                 } else if (msg.what == MSG_OPEN_LOCK) {
-                    String lockKey = (String) msg.obj;
-                    String[] tempValue = lockKey.split("-");
-                    lockKey = tempValue[0];
-                    String unitNo = null;
-                    if (tempValue.length > 1) {
-                        unitNo = tempValue[1];
-                    }
-                    openLock(lockKey, unitNo);
+                    showOpenDoorOption((String) msg.obj);
                 } else if (msg.what == MSG_SWITCH_MIC) {
                     switchMic();
                 } else if (msg.what == MSG_CHECK_RTC_STATUS) {
@@ -251,6 +248,30 @@ public class MainService extends Service implements WifiEvent {
         serviceMessenger = new Messenger(handler);
         MainApplication app = (MainApplication) this.getApplication();
         ReactBridge.serviceMessenger = serviceMessenger;
+    }
+
+
+    private Dialog openDoorAlert;
+    private String[] openOption = {"主门","副门","主门和副门"};
+    private void showOpenDoorOption(final String lockKey){
+        if(openDoorAlert == null){
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setItems(openOption, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    String[] tempValue = lockKey.split("-");
+                    String key = tempValue[0];
+                    String unitNo = null;
+                    if (tempValue.length > 1) {
+                        unitNo = tempValue[1];
+                    }
+                    openLock(key, unitNo,i);
+                }
+            });
+            openDoorAlert = builder.create();
+            openDoorAlert.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        }
+        openDoorAlert.show();
     }
 
     private void switchMic() {
@@ -804,7 +825,7 @@ public class MainService extends Service implements WifiEvent {
     }
 
 
-    protected void openDoor() {
+    protected void openDoor() {  //拨号开门
         lastOpenedCallUuid = call.imageUuid;
         stopRing();
         closeRtc();
@@ -816,13 +837,13 @@ public class MainService extends Service implements WifiEvent {
         device.sendIm(userUrl, "text/plain", "open the door" + imageAppendValue);
     }
 
-    protected void openLock(String lockKey, String unitNo) {
+    protected void openLock(String lockKey, String unitNo,int index) { //app直接开门
         String userUrl = RtcRules.UserToRemoteUri_new(lockKey, RtcConst.UEType_Any);
         String append = "";
         if (unitNo != null) {
             append = "-" + unitNo;
         }
-        device.sendIm(userUrl, "text/plain", "open the door" + append);
+        device.sendIm(userUrl, "text/plain", "open the door" + append+"-"+index);
     }
 
     protected void openTalk(String deviceKey) {
