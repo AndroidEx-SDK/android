@@ -3,8 +3,10 @@ import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
+import android.nfc.tech.NfcA;
 import android.os.Message;
 import android.provider.Settings;
 import android.util.Log;
@@ -45,6 +47,10 @@ public class CardAddActivity extends BaseActivity {
     private int blockid;
 
     private String url;
+
+
+    private String[][] techListsArray = new String[][]{new String[]{NfcA.class.getName()}};
+    private IntentFilter[] intentFiltersArray = null;
 
     public void onSubmit(View v){
         String strName = name.getText().toString().trim();
@@ -169,6 +175,16 @@ public class CardAddActivity extends BaseActivity {
         }
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
         checkNFC();
+        if(intentFiltersArray == null){
+            IntentFilter ndef = new IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED);
+            try {
+                ndef.addDataType("*/*");
+            } catch (IntentFilter.MalformedMimeTypeException e) {
+                throw new RuntimeException("fail", e);
+            }
+            intentFiltersArray = new IntentFilter[]{ndef};
+        }
+
         pi = PendingIntent.getActivity(this, 0, new Intent(this, getClass())
                 .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
     }
@@ -177,7 +193,7 @@ public class CardAddActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
         if(mNfcAdapter != null){
-            mNfcAdapter.enableForegroundDispatch(this, pi, null, null);
+            mNfcAdapter.enableForegroundDispatch(this, pi, intentFiltersArray, techListsArray);
         }
     }
 
