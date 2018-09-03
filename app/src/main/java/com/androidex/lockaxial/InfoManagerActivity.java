@@ -61,4 +61,8 @@ public class InfoManagerActivity extends BaseActivity {
         startActivity(in);
     }
 
+    public void onExit(View v){
+        this.finish();
+    }
+
 }

@@ -166,6 +166,7 @@ public class FaceRegisterActivity extends BaseActivity implements SurfaceHolder.
 
     @Override
     public void onConfirm(String fn,String sp,int rid, int bid, int cid) {
+        showLoading("正在提交数据...");
         this.faceName = fn;
         this.roomid = rid;
         this.blockid = bid;
