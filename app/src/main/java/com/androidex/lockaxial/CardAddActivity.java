@@ -25,9 +25,12 @@ import org.json.JSONObject;
  */
 
 public class CardAddActivity extends BaseActivity {
-    private TextView title;
     private NfcAdapter mNfcAdapter;
     private PendingIntent pi;
+    private IntentFilter[] intentFiltersArray;
+    private String[][] techListsArray;
+
+    private TextView title;
     private EditText name;
     private EditText number;
     private TextView room;
@@ -48,9 +51,6 @@ public class CardAddActivity extends BaseActivity {
 
     private String url;
 
-
-    private String[][] techListsArray = new String[][]{new String[]{NfcA.class.getName()}};
-    private IntentFilter[] intentFiltersArray = null;
 
     public void onSubmit(View v){
         String strName = name.getText().toString().trim();
@@ -174,19 +174,24 @@ public class CardAddActivity extends BaseActivity {
             }
         }
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
-        checkNFC();
-        if(intentFiltersArray == null){
+        if(mNfcAdapter!=null){
+            if(!mNfcAdapter.isEnabled()){
+                showOpenNfcDialg();
+            }
+            pi = PendingIntent.getActivity(this, 0, new Intent(this, getClass())
+                    .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
+
             IntentFilter ndef = new IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED);
             try {
                 ndef.addDataType("*/*");
             } catch (IntentFilter.MalformedMimeTypeException e) {
                 throw new RuntimeException("fail", e);
             }
-            intentFiltersArray = new IntentFilter[]{ndef};
+            intentFiltersArray = new IntentFilter[]{ndef,};
+            techListsArray = new String[][]{new String[]{NfcA.class.getName()}};
+        }else{
+            showToast("您手机不支持NFC功能,请手动输入门禁卡号");
         }
-
-        pi = PendingIntent.getActivity(this, 0, new Intent(this, getClass())
-                .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
     }
 
     @Override
@@ -202,16 +207,6 @@ public class CardAddActivity extends BaseActivity {
         super.onPause();
         if(mNfcAdapter != null){
             mNfcAdapter.disableForegroundDispatch(this);
-        }
-    }
-
-    private void checkNFC(){
-        if(mNfcAdapter!=null){
-            if (!mNfcAdapter.isEnabled()) {
-                showOpenNfcDialg();
-            }
-        }else{
-            showToast("您手机不支持NFC功能,请手动输入门禁卡号");
         }
     }
 
@@ -240,11 +235,16 @@ public class CardAddActivity extends BaseActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        if (NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())) {
+        String action = intent.getAction();
+        if (NfcAdapter.ACTION_TAG_DISCOVERED.equals(action)
+                || NfcAdapter.ACTION_TECH_DISCOVERED.equals(action)
+                || NfcAdapter.ACTION_NDEF_DISCOVERED.equals(action)) {
             String cardid = processIntent(intent);
             if(cardid!=null && cardid.length()>0){
                 number.setText(cardid);
                 Log.i("xiao_","卡号："+cardid);
+            }else{
+                showToast("读卡失败，请重新刷卡");
             }
         }
     }

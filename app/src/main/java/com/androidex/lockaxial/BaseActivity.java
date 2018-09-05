@@ -134,7 +134,9 @@ public abstract class BaseActivity extends Activity {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                callBack.onResult(response.body().string());
+                String result = response.body().string();
+                Log.i("xiao_","请求结果："+result);
+                callBack.onResult(result);
             }
         });
     }
