@@ -208,7 +208,9 @@ public class MainService extends Service implements WifiEvent {
                 } else if (msg.what == MSG_OPEN_DOOR) {
                     openDoor();
                 } else if (msg.what == MSG_OPEN_LOCK) {
-                    showOpenDoorOption((String) msg.obj);
+                    String info = (String) msg.obj;
+                    Log.i("xiao_","开门："+info);
+                    showOpenDoorOption(info);
                 } else if (msg.what == MSG_SWITCH_MIC) {
                     switchMic();
                 } else if (msg.what == MSG_CHECK_RTC_STATUS) {
@@ -254,18 +256,25 @@ public class MainService extends Service implements WifiEvent {
     private Dialog openDoorAlert;
     private String[] openOption = {"主门","副门","主门和副门"};
     private void showOpenDoorOption(final String lockKey){
+        if(openDoorAlert!=null){
+            if(openDoorAlert.isShowing()){
+                openDoorAlert.cancel();
+            }
+            openDoorAlert = null;
+        }
         if(openDoorAlert == null){
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setItems(openOption, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
+                    //442c05e68d0f-0909
                     String[] tempValue = lockKey.split("-");
                     String key = tempValue[0];
                     String unitNo = null;
                     if (tempValue.length > 1) {
                         unitNo = tempValue[1];
                     }
-                    openLock(key, unitNo,i);
+                    openLock(tempValue[0], tempValue.length>1?tempValue[1]:null,i);
                 }
             });
             openDoorAlert = builder.create();
@@ -658,6 +667,7 @@ public class MainService extends Service implements WifiEvent {
 
         @Override
         public void onSendIm(int status) {
+            Log.i("xiao_","发送返回值："+status);
             if (status == RtcConst.CallCode_Success) {
                 ReactBridge.sendReactMessage("reactSendImSuccess", null);
             } else {
@@ -837,13 +847,15 @@ public class MainService extends Service implements WifiEvent {
         device.sendIm(userUrl, "text/plain", "open the door" + imageAppendValue);
     }
 
-    protected void openLock(String lockKey, String unitNo,int index) { //app直接开门
-        String userUrl = RtcRules.UserToRemoteUri_new(lockKey, RtcConst.UEType_Any);
+    protected void openLock(String p1, String p2,int p3) { //app直接开门
+        Log.i("xiao_","发送消息给："+p1);
+        String userUrl = RtcRules.UserToRemoteUri_new(p1, RtcConst.UEType_Any);
+        Log.i("xiao_","Message Url = ："+userUrl);
         String append = "";
-        if (unitNo != null) {
-            append = "-" + unitNo;
+        if (p2 != null) {
+            append = "-" + p2;
         }
-        device.sendIm(userUrl, "text/plain", "open the door" + append+"-"+index);
+        device.sendIm(userUrl, "text/plain", "open the door" + append+"-"+p3);
     }
 
     protected void openTalk(String deviceKey) {

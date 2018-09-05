@@ -26,6 +26,7 @@ public class InfoManagerActivity extends BaseActivity {
         currentUnit = intent.getStringExtra("currentUnit");
         userid = intent.getIntExtra("userid",-1);
         token = intent.getStringExtra("token");
+        Log.i("xiao_","获取到Token = "+token);
     }
 
     @Override
