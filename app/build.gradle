@@ -83,7 +83,7 @@ def enableSeparateBuildPerCPUArchitecture = false
 def enableProguardInReleaseBuilds = false
 
 def buildVersionName(){
-    return "1.2.3"
+    return "1.2.5"
 }
 
 android {

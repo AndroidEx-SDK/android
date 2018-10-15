@@ -15,4 +15,5 @@ public class DeviceConfig {
 
     public static final String LIFT_WIFI_SSID = "CB_CTRL";
     public static final String LIFT_WIFI_PASSWORD = "12345678";
+    public static final int noti_id = 0x5a;
 }

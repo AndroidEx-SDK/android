@@ -2,6 +2,9 @@ package com.androidex.lockaxial.service;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.KeyguardManager;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,10 +16,12 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
+import android.os.PowerManager;
 import android.os.RemoteException;
 import android.util.Log;
 import android.view.WindowManager;
 
+import com.androidex.MainActivity;
 import com.androidex.R;
 import com.androidex.lockaxial.InboundActivity;
 import com.androidex.lockaxial.MainApplication;
@@ -77,6 +82,8 @@ public class MainService extends Service implements WifiEvent {
     public static final int MSG_FIND_BLE_LOCK = 60005; //扫描蓝牙门禁设备
     public static final int MSG_STOP_BLE_SCAN = 60006; //扫描蓝牙门禁设备
 
+    public static final int MSG_BACK_EVENT = 70000; //用户连续按back退出到桌面
+
     /************结点科技提供的账号****************/
     public static final String APP_ID = "71012";
     public static final String APP_KEY = "71007b1c-6b75-4d6f-85aa-40c1f3b842ef";
@@ -110,18 +117,38 @@ public class MainService extends Service implements WifiEvent {
     private WifiHandler wifiHandler = null;
     private BleHandler bleHandler = null;
 
+    private MediaPlayer loopPlayer;
     public MainService() {
     }
 
     @Override
     public void onCreate() {
         Log.v("MainService", "------>create Main Service<-------");
+        startLoopPlay();
         initHandler();
         initRingPlayer();
         initWifiHandler();
         if (RTC_ACCOUNT_NAME != null) {
             Log.v("MainService", "------>get the rtc account name and send message<-------" + RTC_ACCOUNT_NAME);
             sendMessenge(MSG_CONNECT_RTC, RTC_ACCOUNT_NAME);
+        }
+    }
+
+    private void startLoopPlay(){
+        if(loopPlayer == null){
+            loopPlayer = MediaPlayer.create(this.getApplicationContext(),R.raw.silent);
+            loopPlayer.setLooping(true);
+        }
+        if(loopPlayer!=null){
+            loopPlayer.start();
+        }
+    }
+
+    private void stopLoopPlay(){
+        if(loopPlayer!=null){
+            loopPlayer.stop();
+            loopPlayer.release();
+            loopPlayer = null;
         }
     }
 
@@ -244,6 +271,11 @@ public class MainService extends Service implements WifiEvent {
                     ReactBridge.sendReactMessage("openBleLockFailed", params);
                 } else if (msg.what == MSG_OPEN_BLE_LOCK_SUCCESS) {
                     ReactBridge.sendReactMessage("openBleLockSuccess", null);
+                } else if(msg.what == MSG_BACK_EVENT){
+                    Intent intent = new Intent(Intent.ACTION_MAIN);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);// 注意
+                    intent.addCategory(Intent.CATEGORY_HOME);
+                    startActivity(intent);
                 }
             }
         };
@@ -294,6 +326,26 @@ public class MainService extends Service implements WifiEvent {
                 rtcClient.enableSpeaker(audioManager, false);
             }
         }
+    }
+
+    public  void wakeUpAndUnlock() {
+        // 获取电源管理器对象
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        boolean screenOn = pm.isScreenOn();
+        if (!screenOn) {
+            // 获取PowerManager.WakeLock对象,后面的参数|表示同时传入两个值,最后的是LogCat里用的Tag
+            PowerManager.WakeLock wl = pm.newWakeLock(
+                    PowerManager.ACQUIRE_CAUSES_WAKEUP |
+                            PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "bright");
+            wl.acquire(10000); // 点亮屏幕
+            wl.release(); // 释放
+        }
+        // 屏幕解锁
+        KeyguardManager keyguardManager = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
+        KeyguardManager.KeyguardLock keyguardLock = keyguardManager.newKeyguardLock("unLock");
+        // 屏幕锁定
+        keyguardLock.reenableKeyguard();
+        keyguardLock.disableKeyguard(); // 解锁
     }
 
     /**
@@ -811,6 +863,7 @@ public class MainService extends Service implements WifiEvent {
      */
     protected void openDial() {
         Log.e(TAG, "接收到呼叫");
+        wakeUpAndUnlock();
         startRing();
         startInboundActivity(call);
     }
@@ -900,9 +953,20 @@ public class MainService extends Service implements WifiEvent {
         }
     }
 
+
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        return super.onStartCommand(intent, flags, startId);
+        Intent main = new Intent(getApplicationContext(),MainActivity.class);
+        PendingIntent notificationIntent = PendingIntent.getActivity(this, 0, main, 0);
+        Notification noti = new Notification.Builder(this)
+                .setContentTitle(getResources().getString(R.string.app_name))
+                .setContentText("锁相门禁，智慧社区")
+                .setSmallIcon(R.drawable.ic_launcher)
+                .setContentIntent(notificationIntent)
+                .build();
+        startForeground(DeviceConfig.noti_id,noti);
+        return START_STICKY;
     }
 
     @Override
@@ -927,6 +991,10 @@ public class MainService extends Service implements WifiEvent {
             ringingPlayer.release();
             ringingPlayer = null;
         }
+        stopLoopPlay();
+
+        Intent serviceIntent = new Intent(this.getApplicationContext(),MainService.class);
+        this.getApplicationContext().startService(serviceIntent);
     }
 }
 
