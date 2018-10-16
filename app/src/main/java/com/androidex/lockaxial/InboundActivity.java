@@ -90,15 +90,22 @@ public class InboundActivity extends Activity {
     }
 
     protected void startCheckDialStatus() {
+        if(checkDialStatusThread!=null){
+            checkDialStatusThread.interrupt();
+            checkDialStatusThread = null;
+        }
+
         checkDialStatusThread = new Thread() {
             public void run() {
                 try {
                     Thread.sleep(1000 * 30);
+                    if (currentStatus == CALL_MODE) {
+                        sendMainMessenge(MainService.MSG_CLOSE_CALL);
+                    }
                 } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
-                if (currentStatus == CALL_MODE) {
-                    sendMainMessenge(MainService.MSG_CLOSE_CALL);
-                }
+
                 checkDialStatusThread = null;
             }
         };
